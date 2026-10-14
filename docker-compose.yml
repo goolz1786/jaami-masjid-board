@@ -1,0 +1,16 @@
+services:
+  masjid-display:
+    build: .
+    container_name: jaami-masjid-display
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      SESSION_SECRET: ${SESSION_SECRET:-change-this-before-production}
+    volumes:
+      - masjid_data:/data
+
+volumes:
+  masjid_data:

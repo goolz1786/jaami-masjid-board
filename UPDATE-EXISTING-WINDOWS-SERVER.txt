@@ -1,0 +1,115 @@
+JAAMI' MASJID DISPLAY BOARD - PRESERVING-DATA WINDOWS UPGRADE
+======================================================================
+
+Use this update on the SERVER PC that already runs the app. The default
+installation path is C:\JaamiMasjidBoard. A display-only PC needs no app upgrade.
+The server needs internet access for npm dependencies and Windows prerequisites.
+
+1. EXTRACT TO A SEPARATE FOLDER
+
+Extract the update ZIP outside the installed board, for example into:
+
+    C:\JaamiMasjidBoard-Update
+
+Open the actual package folder containing UPGRADE-WINDOWS.cmd.
+Do not extract into C:\JaamiMasjidBoard or delete the existing installation.
+Do not copy any .env or .board-data from another installation.
+
+2. RUN THE UPGRADE
+
+Right-click UPGRADE-WINDOWS.cmd and choose Run as administrator.
+Keep the window open until it prints Upgrade complete.
+
+For a non-default installation, open an Administrator PowerShell window in
+the extracted package folder and run:
+
+    .\scripts\windows\Upgrade-Board.ps1 -InstallPath "D:\JaamiMasjidBoard"
+
+The upgrade refuses to continue if the existing .env or .board-data is missing.
+It stops the board and creates a mandatory ZIP backup before replacing files.
+Every stored file is checked with SHA-256, including hidden database/blob files.
+
+The backup includes .env, .board-data, uploads, source, package-lock.json and
+the previous production build. Dependencies are reinstallable and excluded.
+It is stored in the installed board's backups folder; its path is printed.
+The backup contains credentials: keep it private and copy it to another drive.
+The release ZIP contains no credentials, database or uploaded files.
+
+The upgrade copies app files in place without deleting the installation.
+It excludes .env*, .dev.vars*, .board-data, .wrangler, uploads, media, runtime
+logs and previous backups. It checks that .env is unchanged, reinstalls
+dependencies, builds, applies an additive schema upgrade and restarts the board.
+If installation/build fails, it reports the rollback snapshot and stops.
+
+3. CHECK THE BOARD
+
+On the server, sign in at:
+
+    http://localhost:3000/admin/login
+
+Use your existing username and password. Active sessions from old versions
+are intentionally invalidated; accounts and password hashes are preserved.
+Confirm the existing settings, users, notices, programmes and media are present.
+
+On the display PCs (replace SERVER-IP with the actual server address):
+
+    http://SERVER-IP:3000/display/main
+    http://SERVER-IP:3000/display/community
+
+Public /api/state now omits unpublished content, media inventory and internal
+notes. Check all existing content through the signed-in admin portal.
+
+4. WHAT CHANGED
+
+- Sessions are bound to user IDs, cannot transfer to reused usernames, and
+  are revoked when accounts change. Disabled/deleted users lose access.
+- Public board data excludes disabled, archived and not-yet-published notices,
+  internal poster notes, user/audit data and media inventory.
+- Invalid timezone settings are rejected. Invalid old values fall back to
+  Africa/Johannesburg for display without rewriting stored settings.
+- Main Board Nikah notices use the bride name entered in the form.
+- Local setup uses the same inspected, additive schema upgrade as runtime,
+  so repeated updates do not fail on columns already added by the app.
+- Legacy schedule rows are retained, even though this version no longer uses
+  the old schedules table. Existing per-notice/programme schedules stay intact.
+- A failed database read returns HTTP 503 instead of a blank "healthy" board.
+
+5. RECOVERY IF THE UPGRADE FAILS
+
+Do not delete the installation or run a fresh setup. Keep the printed backup.
+If failure happened before app files were copied, the old service is restarted
+when it had been running. Otherwise it stays stopped for recovery.
+
+To restore the previous app and database, use an Administrator PowerShell
+window. Set $snapshot to the exact VERIFIED ZIP path printed by the upgrade,
+and adjust $board if your installation uses a different path:
+
+    $board = 'C:\JaamiMasjidBoard'
+    $snapshot = 'C:\JaamiMasjidBoard\backups\REPLACE-WITH-PRINTED-BACKUP.zip'
+    if (-not (Test-Path -LiteralPath $snapshot -PathType Leaf)) { throw 'Backup not found.' }
+    $restore = Join-Path $env:TEMP ('jaami-restore-' + [Guid]::NewGuid().ToString('N'))
+    Expand-Archive -LiteralPath $snapshot -DestinationPath $restore
+    foreach ($required in @('.env', '.board-data', 'package-lock.json', 'dist')) {
+      if (-not (Test-Path -LiteralPath (Join-Path $restore $required))) { throw "Backup missing $required" }
+    }
+    Stop-ScheduledTask -TaskName 'Jaami Masjid Display Service' -ErrorAction SilentlyContinue
+    & (Join-Path $board 'scripts\windows\Stop-Board.ps1')
+    if (Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue) { throw 'Board is still running.' }
+    $savedData = Join-Path $board ('backups\pre-restore-' + [Guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $savedData | Out-Null
+    Move-Item -LiteralPath (Join-Path $board '.board-data') -Destination (Join-Path $savedData '.board-data')
+    Copy-Item -LiteralPath (Join-Path $board '.env') -Destination (Join-Path $savedData '.env')
+    & robocopy.exe $restore $board /E /R:1 /W:1 /XD node_modules backups .board-runtime .wrangler
+    if ($LASTEXITCODE -ge 8) { throw 'Restore copy failed. Keep both backups.' }
+    Push-Location $board
+    try {
+      & npm.cmd ci
+      if ($LASTEXITCODE -ne 0) { throw 'Dependency restore failed. Keep the service stopped.' }
+    } finally { Pop-Location }
+    Start-ScheduledTask -TaskName 'Jaami Masjid Display Service'
+
+This restores the old build without rerunning the old migration installer.
+The post-upgrade database/config are retained in $savedData, not discarded.
+Refresh both displays and confirm the restored content in admin.
+A rollback restores the backup's content as of its creation; changes made
+after that backup remain in the saved post-upgrade database.

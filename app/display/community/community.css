@@ -1,0 +1,1021 @@
+:root {
+  color-scheme: light;
+}
+
+html:has(.community-viewport),
+body:has(.community-viewport) {
+  height: 100%;
+  overflow: hidden;
+}
+
+.community-viewport {
+  --community-gold: #b69747;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #05070a;
+}
+
+.community-board {
+  container-type: size;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 10.5% 18% minmax(0, 1fr) 13.5% 3.5%;
+  gap: 0.65cqw;
+  padding: 0.78cqw;
+  background-color: #f5efe1;
+  background-image:
+    linear-gradient(
+      30deg,
+      #b6974709 12%,
+      transparent 12.5%,
+      transparent 87%,
+      #b6974709 87.5%
+    ),
+    linear-gradient(
+      150deg,
+      #b6974709 12%,
+      transparent 12.5%,
+      transparent 87%,
+      #b6974709 87.5%
+    );
+  background-size: 8cqw 14cqw;
+  color: #101216;
+  box-shadow:
+    inset 0 0 0 0.48cqw #05070a,
+    inset 0 0 0 0.72cqw var(--community-gold);
+}
+
+.community-pattern {
+  background-color: #fffdf8;
+  background-image:
+    linear-gradient(
+      30deg,
+      #b6974712 12%,
+      transparent 12.5%,
+      transparent 87%,
+      #b6974712 87.5%
+    ),
+    linear-gradient(
+      150deg,
+      #b6974712 12%,
+      transparent 12.5%,
+      transparent 87%,
+      #b6974712 87.5%
+    );
+  background-size: 7cqw 12cqw;
+}
+
+.community-header {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 62% 38%;
+  align-items: center;
+  overflow: hidden;
+  border: 0.2cqw solid var(--community-gold);
+  border-radius: 0.7cqw;
+}
+
+.community-header > img {
+  width: 91%;
+  height: 78%;
+  margin-left: 2.4cqw;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.community-clock {
+  contain: paint;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4cqw;
+  padding-left: 2cqw;
+  background: #05080b;
+  color: #fff;
+  text-align: center;
+  clip-path: polygon(13% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.community-clock strong {
+  color: #fff;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 5cqw;
+  line-height: 1;
+}
+
+.community-clock span,
+.community-clock em {
+  max-width: 31cqw;
+  font-size: 1.62cqw;
+  line-height: 1.15;
+}
+
+.community-clock em {
+  color: #eadcae;
+  font-family: Georgia, serif;
+  font-style: normal;
+}
+
+.community-top-row,
+.community-bottom-row {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.72cqw;
+  padding: 0 0.12cqw;
+}
+
+.community-top-row {
+  grid-template-columns: minmax(0, 48fr) minmax(0, 52fr);
+}
+
+.community-panel {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 0.22cqw solid var(--community-gold);
+  border-radius: 0.72cqw;
+  background: #fffdf8;
+  box-shadow:
+    inset 0 0 0 0.13cqw #fff,
+    0 0.35cqw 0.9cqw #05070a18;
+}
+
+.community-panel::before,
+.community-panel::after {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  width: 3.2cqw;
+  height: 3.2cqw;
+  pointer-events: none;
+}
+
+.community-panel::before {
+  top: 0.35cqw;
+  left: 0.35cqw;
+  border-top: 0.18cqw solid #d5b85f;
+  border-left: 0.18cqw solid #d5b85f;
+}
+
+.community-panel::after {
+  right: 0.35cqw;
+  bottom: 0.35cqw;
+  border-right: 0.18cqw solid #d5b85f;
+  border-bottom: 0.18cqw solid #d5b85f;
+}
+
+.community-panel-heading,
+.posters-heading {
+  position: relative;
+  z-index: 2;
+  height: 24%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.2cqw;
+  background: #071018;
+  color: #fff;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 1.95cqw;
+  font-weight: 750;
+  letter-spacing: 0.04cqw;
+  text-align: center;
+}
+
+.janazah-card {
+  background: radial-gradient(
+    circle at 50% -20%,
+    #1c2733 0,
+    #0c1118 58%,
+    #070a0e 100%
+  );
+  color: #f6f1e6;
+}
+
+.janazah-content {
+  height: 76%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45cqw;
+  padding: 0.7cqw 1.4cqw;
+  text-align: center;
+}
+
+.janazah-arabic {
+  display: block;
+  font-family: var(--font-amiri), 'Segoe UI', Tahoma, serif;
+  font-size: 1.75cqw;
+  line-height: 1.35;
+  color: #ffffff;
+}
+
+.janazah-relationship {
+  margin: 0;
+  font-family: var(--font-inter), Arial, sans-serif;
+  font-size: 1.15cqw;
+  line-height: 1.2;
+  color: #e9dcb4;
+}
+
+.janazah-details {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.9cqw;
+  row-gap: 0.5cqw;
+  margin-top: 0.4cqw;
+}
+
+.janazah-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12cqw;
+  min-width: 0;
+}
+
+.janazah-detail-wide {
+  grid-column: 1 / -1;
+}
+
+.janazah-detail-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35cqw;
+  color: var(--community-gold);
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  font-size: 1.02cqw;
+  font-weight: 800;
+  letter-spacing: 0.06cqw;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.janazah-detail-label svg {
+  width: 1.25cqw;
+  height: 1.25cqw;
+  flex: 0 0 auto;
+}
+
+.janazah-detail-value {
+  font-family: var(--font-inter), Arial, sans-serif;
+  font-size: 1.24cqw;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #ffffff;
+  overflow-wrap: anywhere;
+}
+
+.janazah-dua {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0.25cqw 0 0;
+  max-width: 100%;
+  font-family: var(--font-inter), Georgia, serif;
+  font-size: 1.05cqw;
+  line-height: 1.2;
+  color: #e9dcb4;
+}
+
+.janazah-content h2 {
+  margin: 0;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 2.6cqw;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.03cqw;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.small-notice-body h2 {
+  margin: 0.35cqw 0;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 2.4cqw;
+  line-height: 1.05;
+}
+
+.person-arabic,
+.relationship,
+.notice-message {
+  margin: 0.25cqw 0;
+}
+
+.person-arabic {
+  font-size: 1.7cqw;
+}
+
+.relationship,
+.notice-message {
+  font-family: Georgia, serif;
+  font-size: 1.2cqw;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+.community-meta-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3cqw 1cqw;
+}
+
+.community-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5cqw;
+  min-width: 0;
+  font-size: 1.17cqw;
+  line-height: 1.15;
+}
+
+.community-meta-line svg {
+  flex: 0 0 auto;
+  width: 1.45cqw;
+  height: 1.45cqw;
+}
+
+.small-notice-card {
+  height: 100%;
+}
+
+.small-notice-card .community-panel-heading {
+  height: 31%;
+  font-size: 1.75cqw;
+}
+
+.small-notice-body {
+  height: 69%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 20% 1fr;
+  align-items: center;
+  gap: 0.7cqw;
+  padding: 0.65cqw 1.2cqw;
+  background-image: linear-gradient(135deg, #fffdf8, #f4ecdc);
+}
+
+.small-notice-body > svg {
+  width: 7cqw;
+  height: 7cqw;
+  color: #9c7720;
+  stroke-width: 1.35;
+}
+
+.small-notice-body h2 {
+  font-size: 1.75cqw;
+}
+
+.small-notice-body .community-meta-line {
+  margin: 0.18cqw 0;
+  font-size: 1.08cqw;
+}
+
+.dua-body p {
+  margin: 0.35cqw 0;
+  font-family: Georgia, serif;
+  font-size: 1.15cqw;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.dua-arabic {
+  font-size: 1.55cqw !important;
+}
+
+.taleem-card {
+  height: 100%;
+  background:
+    linear-gradient(90deg, #fffdf9 0%, #fffdf9f2 62%, #fffdf941 100%),
+    url('/assets/quran-circle.webp') right center / 40% 100% no-repeat,
+    #f4ecdc;
+}
+
+.taleem-card > img {
+  position: absolute;
+  inset: 24% 0 0 auto;
+  z-index: 1;
+  width: 38%;
+  height: 76%;
+  object-fit: cover;
+  opacity: 0.52;
+}
+
+.taleem-copy {
+  position: absolute;
+  inset: 24% 0 0;
+  z-index: 2;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.7cqw 2cqw 0.7cqw 2.4cqw;
+  text-align: left;
+}
+
+.taleem-copy h2 {
+  margin: 0;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 2.1cqw;
+  line-height: 1;
+}
+
+.taleem-subtitle {
+  margin: 0.3cqw 0 0.4cqw;
+  color: #6b5a36;
+  font-family: Georgia, serif;
+  font-size: 1.18cqw;
+  font-style: italic;
+}
+
+.taleem-meta {
+  display: grid;
+  gap: 0.2cqw;
+}
+
+.taleem-meta .community-meta-line {
+  font-size: 1.13cqw;
+  font-weight: 650;
+}
+
+.posters-card {
+  height: 100%;
+  margin: 0 0.12cqw;
+}
+
+.posters-heading {
+  height: 8.5%;
+  justify-content: space-between;
+  padding: 0 1.6cqw;
+  font-size: 1.95cqw;
+}
+
+.posters-heading span,
+.poster-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75cqw;
+}
+
+.posters-heading svg {
+  width: 2.1cqw;
+  height: 2.1cqw;
+  color: #e6c86e;
+}
+
+.poster-pagination {
+  color: #fff;
+  font-size: 1.35cqw;
+}
+
+.poster-pagination svg {
+  width: 1.55cqw;
+  height: 1.55cqw;
+}
+
+.poster-grid {
+  height: 91.5%;
+  min-height: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 0.75cqw;
+  padding: 0.9cqw;
+}
+
+.poster-count-1 {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.poster-count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.poster-count-3 {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.poster-count-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.poster-frame {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  border: 0.18cqw solid #c6a64e;
+  background: #eee8dc;
+  box-shadow: 0 0.35cqw 0.8cqw #08111d28;
+}
+
+.poster-frame > img,
+.poster-frame > object,
+.poster-frame > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  object-position: center;
+  border: 0;
+  background: #ece7dd;
+}
+
+.poster-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.3cqw 0.45cqw;
+  background: #fffdf8;
+  text-align: center;
+  font-size: 0.88cqw;
+  line-height: 1.1;
+}
+
+.poster-caption span {
+  color: #766846;
+  font-size: 0.74cqw;
+}
+
+.poster-pdf-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1cqw;
+  width: 100%;
+  height: 100%;
+  color: #756b59;
+  text-align: center;
+}
+
+.posters-empty {
+  height: 91.5%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1cqw;
+  color: #756b59;
+  text-align: center;
+}
+
+.poster-pdf-fallback svg,
+.posters-empty svg {
+  width: 7cqw;
+  height: 7cqw;
+  color: var(--community-gold);
+  stroke-width: 1.25;
+}
+
+.community-empty {
+  height: 100%;
+  margin: 0;
+}
+
+.community-empty-copy {
+  height: 76%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85cqw;
+  padding: 1cqw 2cqw;
+  text-align: center;
+}
+
+.community-bottom-row .community-empty-copy {
+  height: 69%;
+}
+
+.community-empty-copy strong {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 1.42cqw;
+}
+
+.community-empty-copy em {
+  color: #635a4d;
+  font-family: Georgia, serif;
+  font-size: 1.15cqw;
+  line-height: 1.25;
+}
+
+.taleem-card.community-empty .community-panel-heading {
+  height: 24%;
+}
+
+.taleem-card.community-empty .community-empty-copy {
+  height: 76%;
+  align-items: flex-start;
+  padding-left: 2.4cqw;
+  text-align: left;
+}
+
+.community-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 1cqw;
+  margin: 0 0.12cqw;
+  padding: 0 1.5cqw;
+  border-top: 0.18cqw solid var(--community-gold);
+  background: #071018;
+  color: #fff;
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 0.82cqw;
+  white-space: nowrap;
+}
+
+.community-footer span {
+  color: var(--community-gold);
+}
+
+.arabic {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+.community-fade {
+  animation: community-enter 0.65s ease-out both;
+}
+
+@keyframes community-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-aspect-ratio: 9/16) {
+  .community-board {
+    width: 100vw;
+    height: 177.7778vw;
+  }
+}
+
+@media (min-aspect-ratio: 9/16) {
+  .community-board {
+    width: 56.25vh;
+    height: 100vh;
+  }
+}
+
+/* Portrait companion to the landscape board — shared premium visual language. */
+.community-board {
+  --community-ivory: #f8f6f0;
+  --community-black: #1a1a1a;
+  --community-gold-bright: color-mix(in srgb, var(--community-gold), #f4d873 34%);
+  gap: 0.54cqw;
+  padding: 0.72cqw;
+  background-color: var(--community-ivory);
+  background-image:
+    linear-gradient(30deg, #b6974708 12%, transparent 12.5%, transparent 87%, #b6974708 87.5%),
+    linear-gradient(150deg, #b6974708 12%, transparent 12.5%, transparent 87%, #b6974708 87.5%),
+    radial-gradient(circle at 35% 26%, #fffefa 0, #f8f6f0 48%, #eee7d8 118%);
+  box-shadow:
+    inset 0 0 0 0.34cqw #050505,
+    inset 0 0 0 0.58cqw var(--community-gold),
+    inset 0 0 0 0.74cqw #050505;
+}
+
+.community-header {
+  isolation: isolate;
+  position: relative;
+  grid-template-columns: 61% 39%;
+  overflow: hidden;
+  border-width: 0.18cqw;
+  border-color: var(--community-gold-bright);
+  border-radius: 0.16cqw;
+  background:
+    linear-gradient(90deg, #fffefa 0%, #fffefaf0 72%, #fffefa55 100%),
+    url('/assets/masjid-sunset.webp') right 45% / 48% auto no-repeat,
+    var(--community-ivory);
+  box-shadow: 0 0.25cqw 0.55cqw #0000001e;
+}
+
+.community-header::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  right: 35%;
+  bottom: -1.5cqw;
+  width: 15cqw;
+  height: 8cqw;
+  background: url('/assets/masjid-sunset.webp') center / cover no-repeat;
+  filter: grayscale(1) sepia(0.35);
+  opacity: 0.08;
+}
+
+.community-header > img {
+  width: 80%;
+  height: 72%;
+  margin-left: 3.4cqw;
+  filter: contrast(1.06) saturate(0.96);
+}
+
+.community-clock {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  align-items: center;
+  gap: 0.34cqw;
+  padding: 0.5cqw 5.6cqw 0.5cqw 1.7cqw;
+  border-left: 0.16cqw solid var(--community-gold-bright);
+  background: radial-gradient(circle at 38% 35%, #242424 0, var(--community-black) 44%, #080909 100%);
+  clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.community-clock > strong,
+.community-clock > span,
+.community-clock > em {
+  position: relative;
+  z-index: 2;
+  right: 0.25cqw;
+  text-shadow: 0 0.14cqw 0.34cqw #000;
+}
+
+.community-clock strong {
+  font-size: 4.35cqw;
+  font-weight: 720;
+  letter-spacing: -0.08cqw;
+}
+
+.community-clock span,
+.community-clock em {
+  max-width: 27cqw;
+  font-size: 1.36cqw;
+  white-space: nowrap;
+}
+
+.islamic-corner-art {
+  display: block;
+  pointer-events: none;
+}
+
+.community-clock-corner {
+  position: absolute;
+  z-index: 1;
+  top: -0.08cqw;
+  right: -0.08cqw;
+  width: 10.5cqw;
+  height: 7.6cqw;
+  opacity: 0.98;
+}
+
+.community-panel {
+  border-width: 0.16cqw;
+  border-color: var(--community-gold-bright);
+  border-radius: 0.16cqw;
+  background: #fffefa;
+  box-shadow:
+    inset 0 0 0 0.07cqw #ffffff,
+    0 0.22cqw 0.48cqw #05070a12;
+}
+
+.community-panel::before,
+.community-panel::after {
+  width: 2.65cqw;
+  height: 2.65cqw;
+  border-color: var(--community-gold-bright);
+  opacity: 0.62;
+}
+
+.community-panel-heading,
+.posters-heading {
+  border-bottom: 0.12cqw solid var(--community-gold-bright);
+  background: linear-gradient(90deg, #0d0e0f, #1a1a1a 70%, #080909);
+  color: #fff;
+  letter-spacing: 0.055cqw;
+  text-shadow: 0 0.1cqw 0.22cqw #000;
+}
+
+.community-panel-heading {
+  justify-content: flex-start;
+  gap: 0.78cqw;
+  padding-inline: 1.25cqw;
+}
+
+.community-panel-heading > svg {
+  flex: 0 0 auto;
+  width: 2.05cqw;
+  height: 2.05cqw;
+  color: var(--community-gold-bright);
+  stroke-width: 1.75;
+}
+
+.janazah-card {
+  background: radial-gradient(
+    circle at 50% -20%,
+    #1c2733 0,
+    #0c1118 58%,
+    #070a0e 100%
+  );
+  color: #f6f1e6;
+}
+
+.small-notice-body {
+  background:
+    linear-gradient(135deg, #fffefaef, #f2ebddef),
+    repeating-linear-gradient(45deg, transparent 0 3cqw, #b6974708 3cqw 3.15cqw);
+}
+
+.small-notice-body > svg {
+  color: #9a701a;
+}
+
+.taleem-card {
+  background:
+    linear-gradient(90deg, #fffefa 0%, #fffefaf2 62%, #fffefa42 100%),
+    url('/assets/quran-circle.webp') right center / 40% 100% no-repeat,
+    #f2ebdd;
+}
+
+.posters-card {
+  border-radius: 0.12cqw;
+}
+
+.posters-heading svg {
+  color: var(--community-gold-bright);
+}
+
+.poster-grid {
+  gap: 0.55cqw;
+  padding: 0.62cqw;
+}
+
+.poster-frame {
+  border-width: 0.14cqw;
+  border-color: var(--community-gold-bright);
+  background: #eee8dc;
+  box-shadow: 0 0.2cqw 0.42cqw #08111d1f;
+}
+
+.poster-caption {
+  padding: 0.18cqw 0.38cqw;
+  border-top: 0.06cqw solid #d7c17d;
+  background: #fffefa;
+}
+
+.community-empty-copy {
+  position: relative;
+  background:
+    radial-gradient(circle at center, #fffefa 0, #f7f1e6dd 72%),
+    repeating-linear-gradient(45deg, transparent 0 3cqw, #b6974708 3cqw 3.15cqw);
+}
+
+.community-empty-copy > svg {
+  width: 4.2cqw;
+  height: 4.2cqw;
+  color: #9a701a;
+  stroke-width: 1.25;
+}
+
+.community-empty-copy strong {
+  color: #222;
+  font-size: 1.4cqw;
+}
+
+.community-empty-copy em {
+  max-width: 80%;
+  color: #675b43;
+}
+
+.taleem-card.community-empty .community-empty-copy {
+  align-items: flex-start;
+}
+
+.community-footer {
+  border-top-color: var(--community-gold-bright);
+  background: linear-gradient(90deg, #090a0b, #1a1a1a 50%, #090a0b);
+  box-shadow: inset 0 0.08cqw 0 #fff0a544;
+  letter-spacing: 0.045cqw;
+}
+
+/* Urgent takeover scaled for the portrait board. */
+.community-board .urgent-takeover {
+  gap: 2cqw;
+  padding: 7cqw 5cqw;
+}
+.community-board .urgent-takeover img {
+  width: 60cqw;
+  height: 13cqw;
+}
+.community-board .urgent-takeover > strong {
+  font-size: 2.6cqw;
+  letter-spacing: 0.45cqw;
+}
+.community-board .urgent-takeover h2 {
+  font-size: 8cqw;
+  line-height: 1.02;
+}
+.community-board .urgent-takeover h3 {
+  font-size: 3.6cqw;
+}
+.community-board .urgent-takeover p {
+  max-width: 88cqw;
+  font-size: 3cqw;
+}
+.community-board .urgent-takeover .takeover-details {
+  max-width: 94cqw;
+  column-gap: 2cqw;
+  row-gap: 1.15cqw;
+  font-size: 3.1cqw;
+}
+.community-board .urgent-takeover .takeover-detail-label {
+  letter-spacing: 0.12cqw;
+}
+
+/* Nikah invitation card - ivory and gold, portrait board. */
+.nikah-card {
+  background: linear-gradient(180deg, #fffdf8 0%, #f7efdd 100%);
+}
+.nikah-content {
+  height: 69%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3cqw;
+  padding: 0.4cqw 1.2cqw;
+  text-align: center;
+}
+.nikah-content .nikah-script {
+  font-family: var(--font-script), cursive;
+  font-size: 3.4cqw;
+  line-height: 1;
+  color: var(--community-gold);
+}
+.nikah-content .nikah-hosts {
+  margin: 0;
+  font-family: var(--font-inter), Arial, sans-serif;
+  font-style: italic;
+  font-size: 0.98cqw;
+  line-height: 1.2;
+  color: #6b6350;
+}
+.nikah-content .nikah-names {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.7cqw;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.95cqw;
+  font-weight: 700;
+  line-height: 1.05;
+  color: #14161b;
+}
+.nikah-content .nikah-amp {
+  font-family: var(--font-script), cursive;
+  font-size: 2.5cqw;
+  font-weight: 400;
+  color: var(--community-gold);
+}
+.nikah-content .nikah-when {
+  margin: 0;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.08cqw;
+  color: #3a3a3a;
+}
+.nikah-content .nikah-venue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4cqw;
+  margin: 0;
+  font-size: 1cqw;
+  color: #5a5446;
+}
+.nikah-content .nikah-venue svg {
+  width: 1.2cqw;
+  height: 1.2cqw;
+  color: var(--community-gold);
+}

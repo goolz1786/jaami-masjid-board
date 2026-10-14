@@ -1,0 +1,557 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, monospace;
+  --font-heading: var(--font-montserrat);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+body { font-family: var(--font-inter), Arial, Helvetica, sans-serif; margin: 0; }
+
+:root {
+  --background: #f7f4ed;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --primary: #0c1118;
+  --primary-foreground: #ffffff;
+  --secondary: #eee7d8;
+  --secondary-foreground: #0c1118;
+  --muted: #f3efe6;
+  --muted-foreground: #5f5a50;
+  --accent: #b69747;
+  --accent-foreground: #0c1118;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #d8d0bd;
+  --input: #d8d0bd;
+  --ring: #b69747;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: #0c1118;
+  --sidebar-foreground: #f5f1e8;
+  --sidebar-primary: #b69747;
+  --sidebar-primary-foreground: #0c1118;
+  --sidebar-accent: #1a2432;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #2b3440;
+  --sidebar-ring: #caa956;
+}
+
+@keyframes ticker-slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes emergency-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .78; } }
+.font-heading { font-family: var(--font-montserrat), Arial, sans-serif; }
+
+/* Urgent full-board takeover — shared by both display boards. */
+.urgent-takeover {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2cqw;
+  padding: 5cqw 12cqw;
+  background: radial-gradient(
+    circle at center,
+    #fffdf7 0,
+    #eee5d1 68%,
+    #b69747 150%
+  );
+  text-align: center;
+  font-family: var(--font-montserrat), sans-serif;
+  box-shadow:
+    inset 0 0 0 0.75cqw #0c1118,
+    inset 0 0 0 1.05cqw var(--board-gold, #b69747);
+}
+.urgent-takeover img {
+  width: 38cqw;
+  height: 8cqw;
+  object-fit: contain;
+}
+.urgent-takeover > strong {
+  color: #9f1818;
+  font-size: 1.7cqw;
+  letter-spacing: 0.32cqw;
+}
+.urgent-takeover h2 {
+  margin: 0;
+  font-size: 5cqw;
+  line-height: 1;
+}
+.urgent-takeover h3 {
+  margin: 0;
+  color: #725817;
+  font-size: 2.2cqw;
+}
+.urgent-takeover p {
+  max-width: 70cqw;
+  margin: 0;
+  white-space: pre-line;
+  font-family: var(--font-inter), Georgia, serif;
+  font-size: 2cqw;
+  line-height: 1.45;
+}
+.urgent-takeover .takeover-details {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  column-gap: 1.2cqw;
+  row-gap: 0.7cqw;
+  justify-content: center;
+  align-items: baseline;
+  max-width: 88cqw;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-inter), Georgia, serif;
+  font-size: 2cqw;
+  line-height: 1.2;
+}
+.urgent-takeover .takeover-details li {
+  display: contents;
+}
+.urgent-takeover .takeover-detail-label {
+  justify-self: end;
+  color: #8a6d1f;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08cqw;
+  white-space: nowrap;
+}
+.urgent-takeover .takeover-detail-value {
+  justify-self: start;
+  color: #1b1b1b;
+  font-weight: 700;
+}
+.urgent-takeover .takeover-detail-value-lg {
+  font-size: 1.5em;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+/* Janazah / funeral notice takeover — structure inspired by classic burial
+   notices, rendered in the Jaami' Masjid gold, black and ivory palette. */
+.janazah-takeover {
+  --jt: min(1cqw, 0.5625cqh);
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0;
+  background: #0a0d12;
+  color: #f6f1e6;
+  font-family: var(--font-inter), Arial, sans-serif;
+  box-shadow:
+    inset 0 0 0 0.5cqw #04060a,
+    inset 0 0 0 0.85cqw var(--board-gold, #b69747);
+}
+.janazah-takeover .jt-header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--jt) * 1);
+  padding: calc(var(--jt) * 3) calc(var(--jt) * 4) calc(var(--jt) * 2.4);
+  background-color: #0c1118;
+  background-image:
+    radial-gradient(circle at 50% -10%, rgba(182, 151, 71, 0.28), transparent 62%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(182, 151, 71, 0.12) 0 calc(var(--jt) * 0.45),
+      transparent calc(var(--jt) * 0.45) calc(var(--jt) * 0.9)
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(182, 151, 71, 0.12) 0 calc(var(--jt) * 0.45),
+      transparent calc(var(--jt) * 0.45) calc(var(--jt) * 0.9)
+    );
+  border-bottom: calc(var(--jt) * 0.45) solid var(--board-gold, #b69747);
+}
+.janazah-takeover .jt-logo-plate {
+  background: #fffefa;
+  border-radius: calc(var(--jt) * 0.9);
+  padding: calc(var(--jt) * 0.9) calc(var(--jt) * 2.2);
+  box-shadow: 0 calc(var(--jt) * 0.5) calc(var(--jt) * 1.2) #00000066;
+}
+.janazah-takeover .jt-logo {
+  display: block;
+  width: calc(var(--jt) * 26);
+  height: auto;
+  object-fit: contain;
+}
+.janazah-takeover .jt-arabic {
+  margin: 0;
+  font-family: var(--font-amiri), 'Segoe UI', Tahoma, serif;
+  font-size: calc(var(--jt) * 5.4);
+  line-height: 1.7;
+  color: #ffffff;
+}
+.janazah-takeover .jt-translation {
+  max-width: none;
+  margin: 0;
+  font-size: calc(var(--jt) * 1.2);
+  letter-spacing: calc(var(--jt) * 0.06);
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: #e9dcb4;
+}
+.janazah-takeover .jt-title {
+  margin: calc(var(--jt) * 0.5) 0 0;
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  font-size: calc(var(--jt) * 7.5);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: calc(var(--jt) * 0.12);
+  text-transform: uppercase;
+  color: #ffffff;
+}
+.janazah-takeover .jt-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--board-gold, #b69747);
+  color: #0c1118;
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  font-weight: 800;
+  font-size: calc(var(--jt) * 2.2);
+  letter-spacing: calc(var(--jt) * 0.04);
+  text-transform: uppercase;
+}
+.janazah-takeover .jt-dates span {
+  padding: calc(var(--jt) * 0.95) calc(var(--jt) * 1.4);
+  text-align: center;
+}
+.janazah-takeover .jt-dates span + span {
+  border-left: calc(var(--jt) * 0.22) solid #0c1118;
+}
+.janazah-takeover .jt-band {
+  padding: calc(var(--jt) * 0.7) 0;
+  background: #e8e2d4;
+  color: #0c1118;
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  font-size: calc(var(--jt) * 2.8);
+  font-weight: 800;
+  letter-spacing: calc(var(--jt) * 0.12);
+  text-align: center;
+  text-transform: uppercase;
+}
+.janazah-takeover .jt-name {
+  margin: calc(var(--jt) * 1.3) 0 0;
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  font-size: calc(var(--jt) * 7);
+  font-weight: 800;
+  line-height: 1.05;
+  text-align: center;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+.janazah-takeover .jt-sub {
+  max-width: calc(var(--jt) * 58);
+  margin: calc(var(--jt) * 0.7) auto 0;
+  font-size: calc(var(--jt) * 2.1);
+  line-height: 1.3;
+  text-align: center;
+  color: #e9dcb4;
+}
+.janazah-takeover .jt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 0 0 auto;
+  gap: calc(var(--jt) * 0.6);
+  margin: calc(var(--jt) * 1.6) calc(var(--jt) * 0.9) 0;
+}
+.janazah-takeover .jt-cell {
+  display: flex;
+  flex-direction: column;
+}
+.janazah-takeover .jt-cell-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--jt) * 0.6);
+  padding: calc(var(--jt) * 0.65) calc(var(--jt) * 0.8);
+  background: #e8e2d4;
+  color: #0c1118;
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  font-size: calc(var(--jt) * 2.4);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.janazah-takeover .jt-cell-label svg {
+  width: calc(var(--jt) * 2.7);
+  height: calc(var(--jt) * 2.7);
+  flex: 0 0 auto;
+}
+.janazah-takeover .jt-cell-value {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--jt) * 6);
+  padding: calc(var(--jt) * 0.9) calc(var(--jt) * 0.7);
+  font-size: calc(var(--jt) * 3);
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  color: #ffffff;
+}
+.janazah-takeover .jt-cemetery {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  margin: calc(var(--jt) * 0.6) calc(var(--jt) * 0.9) 0;
+}
+.janazah-takeover .jt-dua {
+  margin: calc(var(--jt) * 1.2) auto 0;
+  max-width: calc(var(--jt) * 60);
+  font-size: calc(var(--jt) * 2.1);
+  line-height: 1.35;
+  text-align: center;
+  color: #e9dcb4;
+}
+.janazah-takeover .jt-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: calc(var(--jt) * 1) calc(var(--jt) * 1.5);
+  background: var(--board-gold, #b69747);
+  color: #0c1118;
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  font-size: calc(var(--jt) * 2.1);
+  font-weight: 800;
+  letter-spacing: calc(var(--jt) * 0.08);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* On the portrait board, stretch the middle sections to fill the screen. */
+@container (max-aspect-ratio: 3/4) {
+  .janazah-takeover .jt-grid {
+    flex: 2 1 auto;
+    grid-auto-rows: 1fr;
+  }
+  .janazah-takeover .jt-cemetery {
+    flex: 1 1 auto;
+  }
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Nikah invitation takeover — elegant ivory and gold, portrait board only. */
+.nikah-takeover {
+  --jt: min(1cqw, 0.5625cqh);
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0;
+  background:
+    radial-gradient(circle at 50% 0, #fffefb 0, #fbf6ea 52%, #efe4cc 100%);
+  color: #14161b;
+  font-family: var(--font-lora), Georgia, serif;
+  box-shadow:
+    inset 0 0 0 0.5cqw #0c1118,
+    inset 0 0 0 0.85cqw var(--board-gold, #b69747);
+}
+.nikah-takeover .nk-frame {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--jt) * 1);
+  padding: calc(var(--jt) * 4) calc(var(--jt) * 6);
+  text-align: center;
+}
+.nikah-takeover .nk-kicker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--jt) * 0.4);
+}
+.nikah-takeover .nk-arabic {
+  font-family: var(--font-amiri), 'Segoe UI', serif;
+  font-size: calc(var(--jt) * 3.3);
+  color: #7a5f16;
+}
+.nikah-takeover .nk-kicker small {
+  font-size: calc(var(--jt) * 1.1);
+  letter-spacing: calc(var(--jt) * 0.09);
+  text-transform: uppercase;
+  color: #6c6450;
+}
+.nikah-takeover .nk-script {
+  font-family: var(--font-script), cursive;
+  font-size: calc(var(--jt) * 11);
+  line-height: 1;
+  color: var(--board-gold, #b69747);
+}
+.nikah-takeover .nk-hosts {
+  max-width: calc(var(--jt) * 74);
+  margin: 0;
+  font-style: italic;
+  font-size: calc(var(--jt) * 2.4);
+  line-height: 1.3;
+  color: #2a2b30;
+}
+.nikah-takeover .nk-lead {
+  max-width: calc(var(--jt) * 66);
+  margin: 0;
+  font-style: italic;
+  font-size: calc(var(--jt) * 2.1);
+  line-height: 1.3;
+  color: #4a4436;
+}
+.nikah-takeover .nk-name {
+  margin: calc(var(--jt) * 0.3) 0 0;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: calc(var(--jt) * 6.4);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: 0.015em;
+  color: #14161b;
+}
+.nikah-takeover .nk-parents {
+  margin: 0;
+  font-style: italic;
+  font-size: calc(var(--jt) * 1.9);
+  line-height: 1.25;
+  color: #5a5446;
+}
+.nikah-takeover .nk-amp {
+  font-family: var(--font-script), cursive;
+  font-size: calc(var(--jt) * 6.5);
+  line-height: 1;
+  color: var(--board-gold, #b69747);
+}
+.nikah-takeover .nk-when {
+  margin: calc(var(--jt) * 0.6) 0 0;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: calc(var(--jt) * 2.5);
+  color: #14161b;
+}
+.nikah-takeover .nk-venue {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--jt) * 0.5);
+  margin: 0;
+  font-size: calc(var(--jt) * 2.1);
+  color: #2a2b30;
+}
+.nikah-takeover .nk-venue svg {
+  width: calc(var(--jt) * 2.4);
+  height: calc(var(--jt) * 2.4);
+  color: var(--board-gold, #b69747);
+}
+.nikah-takeover .nk-message {
+  max-width: calc(var(--jt) * 66);
+  margin: 0;
+  font-style: italic;
+  font-size: calc(var(--jt) * 1.9);
+  line-height: 1.3;
+  color: #5a5446;
+}
+.nikah-takeover .nk-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--jt) * 1.1);
+  background: var(--board-gold, #b69747);
+  color: #0c1118;
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  font-size: calc(var(--jt) * 1.9);
+  font-weight: 800;
+  letter-spacing: calc(var(--jt) * 0.08);
+  text-align: center;
+  text-transform: uppercase;
+}

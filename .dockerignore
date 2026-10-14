@@ -1,0 +1,11 @@
+node_modules
+.git
+.vinext
+dist
+.wrangler
+.env
+npm-debug.log
+tmp
+backups
+.board-data
+.board-runtime
