@@ -72,7 +72,7 @@ try {
   Write-Host 'Copying the new application files...' -ForegroundColor Cyan
   $excludedDirectories = @(
     'node_modules', '.next', '.vinext', '.wrangler', '.board-data',
-    '.board-runtime', 'dist', 'tmp', 'work', 'outputs', 'backups', '.git', 'uploads', 'media'
+    '.board-runtime', 'dist', 'tmp', 'work', 'output', 'outputs', 'sites', 'backups', '.git', 'uploads', 'media'
   )
   $excludedFiles = @('.env', '.env.*', '.dev.vars*', '*.tsbuildinfo', '*.zip')
   $robocopyArguments = @(

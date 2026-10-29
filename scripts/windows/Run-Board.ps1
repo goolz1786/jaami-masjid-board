@@ -22,6 +22,9 @@ try {
 
 $exitCode = 1
 try {
+  # Wrangler's local explorer can read and modify D1/R2 without app login.
+  $env:X_LOCAL_EXPLORER = 'false'
+  $env:X_LOCAL_OBSERVABILITY = 'false'
   npx.cmd wrangler dev --config wrangler.local.jsonc --ip 0.0.0.0 --port 3000 --persist-to .board-data --env-file .env --show-interactive-dev-session false *>> $logFile
   $exitCode = $LASTEXITCODE
   "===== Board exited (pid $PID, exit code $exitCode) $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') =====" |

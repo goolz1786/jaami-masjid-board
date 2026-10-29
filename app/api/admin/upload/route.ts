@@ -12,6 +12,9 @@ const ALLOWED = new Set([
 const MAX_BYTES = 20 * 1024 * 1024;
 
 export async function POST(request: Request) {
+  const origin = request.headers.get('origin');
+  if (origin && origin !== new URL(request.url).origin)
+    return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
   if (!(await isAuthenticated()))
     return NextResponse.json({ error: 'Sign in required.' }, { status: 401 });
   const data = await request.formData();
@@ -28,6 +31,17 @@ export async function POST(request: Request) {
       { error: 'Files must be 20 MB or smaller.' },
       { status: 400 },
     );
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const startsWith = (signature: number[]) =>
+    signature.every((value, index) => bytes[index] === value);
+  const matchesType =
+    (file.type === 'image/png' && startsWith([137, 80, 78, 71, 13, 10, 26, 10])) ||
+    (file.type === 'image/jpeg' && startsWith([255, 216, 255])) ||
+    (file.type === 'image/webp' && startsWith([82, 73, 70, 70]) && bytes.length >= 12 &&
+      bytes[8] === 87 && bytes[9] === 69 && bytes[10] === 66 && bytes[11] === 80) ||
+    (file.type === 'application/pdf' && startsWith([37, 80, 68, 70, 45]));
+  if (!matchesType)
+    return NextResponse.json({ error: 'The file contents do not match its type.' }, { status: 400 });
   const extension =
     file.type === 'image/png'
       ? 'png'

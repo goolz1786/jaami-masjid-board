@@ -1,4 +1,9 @@
 const tables = [
+  `CREATE TABLE IF NOT EXISTS login_attempts (
+    account_key TEXT PRIMARY KEY NOT NULL,
+    attempts INTEGER NOT NULL,
+    window_started_at INTEGER NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     username TEXT NOT NULL,

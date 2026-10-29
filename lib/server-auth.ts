@@ -6,6 +6,8 @@ import { rootUsername } from './root-admin';
 
 const COOKIE_NAME = 'masjid_admin_session';
 const SESSION_HOURS = 12;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_ATTEMPTS = 5;
 const encoder = new TextEncoder();
 
 const sessionSecret = () => env.SESSION_SECRET ?? 'development-only-change-me';
@@ -55,6 +57,7 @@ async function ensureBootstrapAdmin() {
 }
 
 export async function login(username: string, password: string, secure = true) {
+  if (typeof username !== 'string' || typeof password !== 'string' || username.length > 128 || password.length > 1024) return false;
   await ensureSchema();
   await ensureBootstrapAdmin();
   const user = await env.DB.prepare(
@@ -67,13 +70,24 @@ export async function login(username: string, password: string, secure = true) {
       password_hash: string;
       active: number;
     }>();
-  if (!user || !user.active) return false;
+  const attemptKey = user?.active ? `user:${user.id}` : 'unknown';
+  const timestamp = Date.now();
+  const attempts = await env.DB.prepare(
+    `INSERT INTO login_attempts (account_key,attempts,window_started_at) VALUES (?,1,?)
+     ON CONFLICT(account_key) DO UPDATE SET
+       attempts = CASE WHEN window_started_at <= ? THEN 1 ELSE attempts + 1 END,
+       window_started_at = CASE WHEN window_started_at <= ? THEN ? ELSE window_started_at END
+     RETURNING attempts`,
+  ).bind(attemptKey, timestamp, timestamp - LOGIN_WINDOW_MS, timestamp - LOGIN_WINDOW_MS, timestamp)
+    .first<{ attempts: number }>();
+  if (!attempts || attempts.attempts > LOGIN_ATTEMPTS || !user || !user.active) return false;
   const verification = await verifyPassword(
     user.password_hash,
     password,
     legacyPasswordSalts(),
   );
   if (!verification.valid) return false;
+  await env.DB.prepare('DELETE FROM login_attempts WHERE account_key=?').bind(attemptKey).run();
   let verifiedHash = user.password_hash;
   if (verification.needsRehash) {
     verifiedHash = await hashPassword(password);

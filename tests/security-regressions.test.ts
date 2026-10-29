@@ -53,6 +53,15 @@ beforeEach(async () => {
 afterEach(() => store.sqlite.close());
 
 describe('session lifecycle', () => {
+  it('temporarily limits repeated password guesses for an account', async () => {
+    const { hashPassword } = await import('../lib/password');
+    const hash = await hashPassword('correct-test-password');
+    store.sqlite.prepare('UPDATE users SET password_hash=? WHERE id=2').run(hash);
+    for (let i = 0; i < 5; i++) expect(await auth.login('editor', 'incorrect', false)).toBe(false);
+    expect(await auth.login('editor', 'correct-test-password', false)).toBe(false);
+    store.sqlite.prepare('UPDATE login_attempts SET window_started_at=?').run(Date.now() - 16 * 60 * 1000);
+    expect(await auth.login('editor', 'correct-test-password', false)).toBe(true);
+  });
   it('creates a working session bound to the current user ID on sign-in', async () => {
     const { hashPassword } = await import('../lib/password');
     const hash = await hashPassword('correct-test-password');

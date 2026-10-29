@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-29 — Security hardening
+
+- Disable Wrangler's local data explorer and observability interface in the Windows and Docker startup paths. A local-server test confirmed the explorer was available without application login before the change and returned 404 after it.
+- Limit sign-in attempts per account to five in a 15-minute window. Successful sign-in clears the counter; an account that reaches the limit must wait for the window to expire.
+- Reject uploads whose file signature does not match the declared image or PDF type, reject cross-origin browser uploads, and prevent browsers from sniffing served media types.
+- Exclude unrelated `output` and `sites` folders from Windows update packages and upgrade copies.
+- Update dependencies to address several reported advisories. See [security review](docs/SECURITY-REVIEW.md) for remaining risks and deployment limits.
+
 ## 2026-10-29 — Notice previews and Windows update guide
 
 ### Added
