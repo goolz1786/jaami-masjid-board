@@ -21,8 +21,7 @@ describe('system contracts', () => {
   it('keeps the canonical display endpoint and resilient live polling', () => {
     expect(read('app/display/main/page.tsx')).toContain("from '../page'");
     const display = read('app/display/page.tsx');
-    expect(display).toContain("fetch('/api/state'");
-    expect(display).toContain('Retain the last valid board');
+    expect(read('hooks/use-board-state.tsx')).toContain("fetch('/api/state'");
     expect(display).toContain('useIndependentCarousel');
   });
   it('refreshes the Jamiat date and exposes a manual admin override', () => {
@@ -41,8 +40,7 @@ describe('system contracts', () => {
   });
   it('provides a resilient portrait Community Board and real admin preview', () => {
     const community = read('app/display/community/page.tsx');
-    expect(community).toContain("fetch('/api/state'");
-    expect(community).toContain('Keep the last valid board');
+    expect(read('hooks/use-board-state.tsx')).toContain("fetch('/api/state'");
     expect(community).toContain('JANAZAH ANNOUNCEMENT');
     expect(community).toContain('COMMUNITY POSTERS');
     expect(community).not.toContain('QRCode.toDataURL');

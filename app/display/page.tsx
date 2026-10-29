@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useBoardState } from '@/hooks/use-board-state';
+import { contentVisibleOnBoard } from '@/lib/board-preview';
 import {
   CalendarDays,
   ChevronRight,
@@ -513,7 +515,7 @@ function FeatureRenderer({
 }
 
 export default function DisplayPage() {
-  const [state, setState] = useState<DisplayState>(defaultDisplayState);
+  const { state, previewItem } = useBoardState();
   const [currentTime, setCurrentTime] = useState(
     () => new Date('2000-01-01T00:00:00Z'),
   );
@@ -527,28 +529,6 @@ export default function DisplayPage() {
     };
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        const response = await fetch('/api/state', { cache: 'no-store' });
-        if (response.ok && active)
-          setState((await response.json()) as DisplayState);
-      } catch {
-        /* Retain the last valid board during network interruption. */
-      }
-    };
-    void load();
-    const timer = window.setInterval(
-      load,
-      Math.max(3, state.settings.refreshInterval) * 1000,
-    );
-    return () => {
-      active = false;
-      window.clearInterval(timer);
-    };
-  }, [state.settings.refreshInterval]);
-
   const timeZone = state.settings.timezone || 'Africa/Johannesburg';
   const islamicDate =
     state.islamicDate?.value || formatIslamicDate(currentTime, timeZone);
@@ -556,19 +536,19 @@ export default function DisplayPage() {
     () =>
       state.contentItems.filter(
         (item) =>
-          item.displayProfile === 'MAIN' && isContentActive(item, currentTime),
+          item.displayProfile === 'MAIN' && contentVisibleOnBoard(item, currentTime, previewItem?.id),
       ),
-    [currentTime, state.contentItems],
+    [currentTime, state.contentItems, previewItem?.id],
   );
   const whatsapp = useMemo(
     () =>
-      orderContent(
+      previewItem?.type === 'WHATSAPP_QR' ? previewItem : orderContent(
         state.contentItems.filter(
           (item) =>
-            item.type === 'WHATSAPP_QR' && isContentActive(item, currentTime),
+            item.type === 'WHATSAPP_QR' && contentVisibleOnBoard(item, currentTime, previewItem?.id),
         ),
       )[0],
-    [currentTime, state.contentItems],
+    [currentTime, state.contentItems, previewItem],
   );
   const programmes = useMemo(
     () =>
@@ -615,12 +595,14 @@ export default function DisplayPage() {
     return weightedContent(orderContent(values.length ? values : fallback));
   }, [activeContent, programmes, todayProgrammeIds]);
 
-  const feature =
+  const rotatingFeature =
     useIndependentCarousel(
       features,
       state.settings.carouselDurations.MAIN_FEATURE,
       offsets.MAIN_FEATURE,
     ) ?? features[0];
+  const feature = previewItem && (previewItem.zone === 'MAIN_FEATURE' || specialTypes.includes(previewItem.type as (typeof specialTypes)[number]))
+    ? contentFeature(previewItem) : rotatingFeature;
 
   const upcomingPages = useMemo(
     () =>
@@ -707,21 +689,26 @@ export default function DisplayPage() {
     };
   }, [activeContent, currentTime, state.announcements, timeZone]);
 
-  const important = useIndependentCarousel(
+  const rotatingImportant = useIndependentCarousel(
     panels.important,
     state.settings.carouselDurations.IMPORTANT,
     offsets.IMPORTANT,
   );
-  const community = useIndependentCarousel(
+  const rotatingCommunity = useIndependentCarousel(
     panels.community,
     state.settings.carouselDurations.COMMUNITY,
     offsets.COMMUNITY,
   );
-  const donate = useIndependentCarousel(
+  const rotatingDonate = useIndependentCarousel(
     panels.donate,
     state.settings.carouselDurations.DONATE,
     offsets.DONATE,
   );
+  const previewPanel = previewItem && !specialTypes.includes(previewItem.type as (typeof specialTypes)[number])
+    ? panelFromContent(previewItem) : undefined;
+  const important = previewPanel && previewItem?.zone === 'IMPORTANT' ? previewPanel : rotatingImportant;
+  const community = previewPanel && previewItem?.zone === 'COMMUNITY' ? previewPanel : rotatingCommunity;
+  const donate = previewPanel && previewItem?.zone === 'DONATE' ? previewPanel : rotatingDonate;
   const takeovers = useMemo(
     () =>
       orderContent(
@@ -742,7 +729,9 @@ export default function DisplayPage() {
     takeovers.length,
     Math.max(5, state.settings.takeoverDuration || 10) * 1000,
   );
-  const takeover = takeoverIndex >= 0 ? takeovers[takeoverIndex] : undefined;
+  const takeover = previewItem
+    ? (previewItem.takeover ? previewItem : undefined)
+    : (takeoverIndex >= 0 ? takeovers[takeoverIndex] : undefined);
   const gold = state.settings.goldAccent || '#B69747';
   const emergencyClass =
     state.settings.emergencyTheme === 'gold'

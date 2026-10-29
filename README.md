@@ -2,6 +2,8 @@
 
 A digital noticeboard with landscape and portrait display profiles, a password-protected admin portal, persistent media storage, and preserving-data Windows upgrades.
 
+See the [changelog](CHANGELOG.md) for the latest changes, verification and security review notes.
+
 ## Screenshots
 
 These screenshots were captured from an isolated local demo on 14 October 2026. Programme wording, poster content, dates and QR destinations are samples. They do not show a production database or verified upcoming events.
@@ -23,6 +25,23 @@ The 9:16 Community Board groups Janazah, Nikah, sick/dua, Ladies Taleem and comm
 ![Admin dashboard with demo content](docs/images/admin-dashboard.jpg)
 
 Sign in at `/admin/login`. The sidebar opens management sections, and quick actions create programmes and notices. The admin sees all records, including drafts and archived content; public displays receive only eligible published records. Editor accounts are restricted to their permitted content, media and hadith actions.
+
+### Preview notices before applying changes
+
+- In **Community Posters**, click a poster thumbnail or its **Preview** button to inspect it in the complete TV layout. Images have thumbnails; PDFs show their first page. Paused, expired and scheduled items can be previewed without changing their status.
+- In a notice's create/edit window, choose **Preview on TV** to inspect the current unsaved wording and uploaded file. **Back to editing** keeps your changes; **Save item** remains the separate action that applies them according to the notice's status and schedule.
+- **Full screen** enlarges the preview. Main uses the landscape layout and Community uses the portrait layout. A preview explains when a selected profile/zone has no matching TV slot.
+- Hover over an action icon, or reach it with the keyboard, to see a readable label such as **Edit notice**, **Make a copy** or **Pause on TV**. Labels describe the current action, including **Enable on TV** and **Restore from archive**. Unavailable controls are labelled as unavailable.
+
+Previewing does not save or enable a notice. Uploaded files are stored in Media as before, but uploading alone does not put a notice on the TV. Preview snapshots stay in the signed-in browser and are not placed in URLs or browser storage. Existing **Displays / Live preview** continues to show published content.
+
+This feature adds no database migration. Use the preserving-data Windows upgrade below for an existing server.
+
+The following examples use an isolated demo database captured on 16 October 2026. They do not show live notices.
+
+![Community Posters with image and PDF thumbnails and Preview actions](docs/images/poster-thumbnails.png)
+
+![A selected notice in the read-only Community TV preview](docs/images/notice-tv-preview.png)
 
 ## How the app works
 
@@ -98,6 +117,8 @@ The admin page is `http://SERVER-IP:3000/admin/login`. The installer prints the 
 To remove the Windows autostart service and firewall rule, double-click **`UNINSTALL-WINDOWS.cmd`**. It retains the application, database, uploads and backups.
 
 ## Upgrading an existing Windows server
+
+For a step-by-step walkthrough, open [START-HERE-UPDATE.txt](START-HERE-UPDATE.txt) or the [printable Windows update guide](docs/Windows-Update-Guide.pdf). Both are included in the update package.
 
 To update a server that already runs the board, build an update ZIP from the new source with **`PACKAGE-WINDOWS.cmd`** (or `scripts\windows\Package-Board.ps1`). On the server, extract the ZIP to a temporary folder and run **`UPGRADE-WINDOWS.cmd`** as administrator. Extract outside the existing installation. The upgrade requires the existing `.env` and `.board-data`, stops the service, creates a mandatory SHA-256-verified backup of credentials, data, uploads and the previous app/build, then copies new app files in place. It preserves runtime paths, rebuilds, applies a repeatable additive schema upgrade and restarts the service. Legacy admin sessions require sign-in again; accounts and passwords are retained. A failed update reports the rollback snapshot and keeps the service stopped after app replacement.
 

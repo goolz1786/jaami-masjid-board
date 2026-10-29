@@ -1,6 +1,10 @@
 JAAMI' MASJID DISPLAY BOARD - PRESERVING-DATA WINDOWS UPGRADE
 ======================================================================
 
+For a beginner walkthrough, read START-HERE-UPDATE.txt or open the
+printable docs\Windows-Update-Guide.pdf in this package. This file contains
+the detailed procedure and recovery steps.
+
 Use this update on the SERVER PC that already runs the app. The default
 installation path is C:\JaamiMasjidBoard. A display-only PC needs no app upgrade.
 The server needs internet access for npm dependencies and Windows prerequisites.
@@ -61,6 +65,20 @@ notes. Check all existing content through the signed-in admin portal.
 
 4. WHAT CHANGED
 
+Notice preview additions (16 October 2026):
+- Community Posters listings include clickable image/PDF thumbnails and a
+  Preview action. PDF thumbnails show the first page and load near the viewport.
+- Create/edit notice windows include Preview on TV and Back to editing.
+  Inspect unsaved changes in the actual Main or Community layout before saving.
+- Previewing paused, expired or scheduled notices does not enable or publish
+  them. Existing settings, content and uploads remain unchanged by previewing.
+- Full screen enlarges the preview. Preview needs an active admin/editor sign-in.
+- No database migration is introduced by this feature.
+- Action icons show readable help on mouse hover and keyboard focus. Labels
+  cover moving, editing, copying, pausing/enabling, archiving/restoring and
+  deleting, plus media zoom/download and other admin icon controls.
+
+Previously included fixes:
 - Sessions are bound to user IDs, cannot transfer to reused usernames, and
   are revoked when accounts change. Disabled/deleted users lose access.
 - Public board data excludes disabled, archived and not-yet-published notices,

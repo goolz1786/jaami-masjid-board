@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ImagePlus, Save, Upload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Eye, ImagePlus, Save, Upload } from 'lucide-react';
+import { NoticePreview } from './notice-preview';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -29,6 +30,7 @@ import {
   type ContentItem,
   type ContentType,
   type ContentZone,
+  type DisplayState,
   type MediaItem,
   type Programme,
 } from '@/lib/masjid-types';
@@ -44,12 +46,14 @@ import {
 
 export function ContentDialog({
   draft,
+  boardState,
   media,
   onClose,
   onUpload,
   onSave,
 }: {
   draft: ContentItem | null;
+  boardState: DisplayState;
   media: MediaItem[];
   onClose: () => void;
   onUpload: (file: File) => Promise<string>;
@@ -59,24 +63,38 @@ export function ContentDialog({
     blankContent('GENERAL_NOTICE', 'IMPORTANT'),
   );
   const [busy, setBusy] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const uploadSequence = useRef(0);
   useEffect(() => {
     if (draft) setValue(draft);
+    setPreviewing(false);
+    setUploadError('');
+    setBusy(false);
+    uploadSequence.current += 1;
   }, [draft]);
   async function upload(file?: File) {
     if (!file) return;
+    const sequence = ++uploadSequence.current;
     setBusy(true);
+    setUploadError('');
     try {
-      setValue((current) => ({ ...current, imageUrl: '' }));
       const url = await onUpload(file);
-      setValue((current) => ({ ...current, imageUrl: url }));
+      if (sequence === uploadSequence.current) {
+        setValue((current) => ({ ...current, imageUrl: url, details: {
+          ...current.details, posterMimeType: file.type,
+        } }));
+      }
+    } catch (error) {
+      if (sequence === uploadSequence.current) setUploadError(error instanceof Error ? error.message : 'Upload failed.');
     } finally {
-      setBusy(false);
+      if (sequence === uploadSequence.current) setBusy(false);
     }
   }
   const fields = detailFields[value.type] ?? [];
   return (
     <Dialog open={Boolean(draft)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+      <DialogContent className={`max-h-[92vh] overflow-y-auto ${previewing ? 'sm:max-w-6xl' : 'sm:max-w-4xl'}`}>
         <DialogHeader>
           <DialogTitle>
             {value.id ? 'Edit' : 'Create'}{' '}
@@ -87,10 +105,12 @@ export function ContentDialog({
             the live board renderer.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-2 md:grid-cols-2">
+        {uploadError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{uploadError}</p>}
+        {previewing ? <NoticePreview state={boardState} item={value} /> : <div className="grid gap-4 py-2 md:grid-cols-2">
           <Field label="Content type">
             <Select
               value={value.type}
+              disabled={busy}
               onValueChange={(type) => {
                 if (!type) return;
                 const nextType = type as ContentType;
@@ -333,6 +353,7 @@ export function ContentDialog({
               <div className="flex gap-2">
                 <Select
                   value={value.imageUrl || 'none'}
+                  disabled={busy}
                   onValueChange={(url) => {
                     if (!url) return;
                     const selected = media.find((item) => item.url === url);
@@ -375,6 +396,8 @@ export function ContentDialog({
                   <input
                     type="file"
                     className="sr-only"
+                    aria-label="Upload notice image or PDF"
+                    disabled={busy}
                     accept={
                       value.type === 'EXTERNAL_POSTER'
                         ? 'image/png,image/jpeg,image/webp,application/pdf'
@@ -382,15 +405,8 @@ export function ContentDialog({
                     }
                     onChange={(event) => {
                       const file = event.target.files?.[0];
-                      if (file)
-                        setValue((current) => ({
-                          ...current,
-                          details: {
-                            ...current.details,
-                            posterMimeType: file.type,
-                          },
-                        }));
                       void upload(file);
+                      event.target.value = '';
                     }}
                   />
                 </label>
@@ -457,11 +473,11 @@ export function ContentDialog({
               automatically six hours after the burial or Janazah time.
             </p>
           )}
-        </div>
+        </div>}
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
+          {previewing ? <Button variant="outline" onClick={() => setPreviewing(false)}><ArrowLeft /> Back to editing</Button>
+            : <Button variant="outline" onClick={onClose}>Cancel</Button>}
+          {!previewing && <Button variant="outline" disabled={busy} onClick={() => setPreviewing(true)}><Eye /> Preview on TV</Button>}
           <Button
             disabled={!value.title.trim() || busy}
             onClick={() => void onSave(value).catch(() => undefined)}

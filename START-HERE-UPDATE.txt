@@ -1,0 +1,79 @@
+Update your Windows board
+
+JAAMI' MASJID DISPLAY BOARD | 16 October 2026 | Page 1: Install
+
+For your existing server at C:\JaamiMasjidBoard. This update includes poster thumbnails, TV previews and helpful labels on action icons. Use the latest combined ZIP only; you do not need to install the earlier preview ZIP first.
+
+1. Get ready on the SERVER PC
+
+Download or copy the update ZIP to the PC that runs the board. Keep it connected to power and the internet. Finish any admin edits first. The TV displays will be unavailable while the update runs.
+
+2. Extract into a SEPARATE folder
+
+Right-click the downloaded ZIP, choose Extract All... and use this new folder:
+
+C:\JaamiMasjidBoard-Update-20261016
+
+Open the extracted folder. If you see another folder inside, open that too, until you can see UPGRADE-WINDOWS.cmd beside START-HERE-UPDATE.txt.
+
+Leave C:\JaamiMasjidBoard in place. Do not extract over it, delete it or manually replace its data folders. Run the command from the extracted folder, not from inside the ZIP.
+
+3. Run the upgrade
+
+Right-click UPGRADE-WINDOWS.cmd and select Run as administrator. If Windows asks for administrator permission, choose Yes. If file extensions are hidden, look for UPGRADE-WINDOWS, a Windows Command Script.
+
+Use UPGRADE-WINDOWS.cmd for this existing installation. Keep the upgrade window open and let it finish.
+
+4. Wait for the FINAL success message
+
+The updater stops the service, creates and verifies a backup, installs the application files, builds and restarts the board. It keeps your existing login, database, settings and uploaded files. If the backup cannot be verified, the upgrade stops before replacing application files.
+
+Upgrade complete.
+Existing credentials, database, uploads and content were preserved.
+Rollback backup: C:\JaamiMasjidBoard\backups\...zip
+Upgrade completed successfully.
+
+Installation complete is an earlier message. Wait for the final Upgrade completed successfully before pressing a key to close the window. Then follow page 2.
+
+
+====================================================================
+
+Check it worked
+
+JAAMI' MASJID DISPLAY BOARD | 16 October 2026 | Page 2: Verify & keep your backup
+
+5. Sign in and check your existing content
+
+On the server PC, open this address and use your existing username and password. Sign in again if asked.
+
+http://localhost:3000/admin/login
+
+Check that your settings, notices, posters and media are still present. On your other PCs or TVs, use the usual server address. Your last supplied address was 192.168.0.100; use the current address if it has changed.
+
+http://192.168.0.100:3000/admin/login
+http://192.168.0.100:3000/display/main
+http://192.168.0.100:3000/display/community
+
+6. Try the new features
+
+Hover labels: Rest the mouse over an action icon. You should see words such as Edit notice, Make a copy or Pause on TV. Labels also appear when you reach the icons with the Tab key.
+
+Poster thumbnails: Open Community Posters. Click a thumbnail or its Preview button to see the notice in the TV layout.
+
+Preview before saving: Open or add a notice, make your changes, and choose Preview on TV. Choose Back to editing to return. Previewing does not save or publish the notice; use the normal save action when you are ready.
+
+If you still see the old interface, refresh the admin page with Ctrl + F5. Recheck both TV display pages after the update.
+
+7. Keep the rollback backup
+
+The upgrade prints the exact backup ZIP path. Keep that backup in C:\JaamiMasjidBoard\backups and copy it to another drive if possible. It contains your credentials and board data, so keep it private and do not upload it to GitHub.
+
+If the upgrade fails or the board will not load
+
+Keep the installation, the error message and the printed backup path. Do not delete the installation or try to repair it with a fresh setup. The detailed recovery steps are in UPDATE-EXISTING-WINDOWS-SERVER.txt beside the upgrade command.
+
+After the update has copied the new scripts, you can collect a read-only diagnostic report. On the server PC, open PowerShell as Administrator and paste this entire command:
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\JaamiMasjidBoard\scripts\windows\Diagnose-Board.ps1"
+
+Copy the entire command on the line above. Share the error and diagnostic output for help, without sharing your .env file or backup ZIP.

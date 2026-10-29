@@ -738,6 +738,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
                     }
                   />
                   <ContentPanel
+                    boardState={state}
                     title="Important notices"
                     items={state.contentItems.filter(
                       (item) =>
@@ -807,6 +808,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
                     addLabel="Add community notice"
                   />
                   <ContentPanel
+                    boardState={state}
                     title="Community"
                     items={state.contentItems.filter(
                       (item) =>
@@ -850,6 +852,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
                     }
                   />
                   <ContentPanel
+                    boardState={state}
                     title="Donation campaigns"
                     items={state.contentItems.filter(
                       (item) =>
@@ -881,6 +884,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
               )}
               {section === 'Janazah' && (
                 <ContentPanel
+                    boardState={state}
                   title="Janazah announcements"
                   items={state.contentItems.filter(
                     (item) => item.type === 'JANAZAH',
@@ -911,6 +915,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
               )}
               {section === 'Nikah' && (
                 <ContentPanel
+                    boardState={state}
                   title="Nikah announcements"
                   items={state.contentItems.filter(
                     (item) => item.type === 'NIKAH',
@@ -939,6 +944,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
               )}
               {section === 'Sick / Dua' && (
                 <ContentPanel
+                    boardState={state}
                   title="Sick / Dua requests"
                   items={state.contentItems.filter(
                     (item) => item.type === 'SICK_DUA',
@@ -969,6 +975,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
               )}
               {section === 'Ladies Taleem' && (
                 <ContentPanel
+                    boardState={state}
                   title="Ladies Taleem"
                   items={state.contentItems.filter(
                     (item) => item.type === 'LADIES_TALEEM',
@@ -999,6 +1006,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
               )}
               {section === 'Community Posters' && (
                 <ContentPanel
+                    boardState={state}
                   title="Community Posters"
                   items={state.contentItems.filter(
                     (item) => item.type === 'EXTERNAL_POSTER',
@@ -1030,6 +1038,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
               )}
               {section === 'WhatsApp QR' && (
                 <ContentPanel
+                    boardState={state}
                   title="WhatsApp Group QR"
                   items={state.contentItems.filter(
                     (item) => item.type === 'WHATSAPP_QR',
@@ -1204,6 +1213,7 @@ export function AdminApp({ role = 'editor' }: { role?: 'admin' | 'editor' }) {
         }}
       />
       <ContentDialog
+        boardState={state}
         draft={contentDraft}
         media={state.media}
         onClose={() => setContentDraft(null)}

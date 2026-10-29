@@ -7,6 +7,7 @@ import {
   ChevronUp,
   Download,
   ExternalLink,
+  Eye,
   FileText,
   Megaphone,
   MonitorPlay,
@@ -62,6 +63,9 @@ import {
 } from '@/lib/masjid-types';
 
 import { Field, ToggleField, StatusBadge } from './admin-shared';
+import { AdminActionButton, AdminActionLink } from './admin-action';
+import { PosterThumbnail } from '@/components/poster-thumbnail';
+import { NoticePreviewDialog } from './notice-preview';
 
 export function PreviewPanel() {
   return (
@@ -247,7 +251,7 @@ export function ProgrammesPanel({
             className="grid items-center gap-4 border-b p-4 last:border-b-0 md:grid-cols-[72px_1fr_150px_120px_220px]"
           >
             <div className="flex">
-              <Button
+              <AdminActionButton hint="Move earlier"
                 size="icon-sm"
                 variant="ghost"
                 disabled={index === 0}
@@ -255,8 +259,8 @@ export function ProgrammesPanel({
                 aria-label="Move up"
               >
                 <ChevronUp />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Move later"
                 size="icon-sm"
                 variant="ghost"
                 disabled={index === ordered.length - 1}
@@ -264,7 +268,7 @@ export function ProgrammesPanel({
                 aria-label="Move down"
               >
                 <ChevronDown />
-              </Button>
+              </AdminActionButton>
             </div>
             <div className="flex min-w-0 items-center gap-3">
               <img
@@ -296,39 +300,39 @@ export function ProgrammesPanel({
               </span>
             </div>
             <div className="flex gap-1">
-              <Button
+              <AdminActionButton hint="Edit programme"
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => onEdit(p)}
                 aria-label={`Edit ${p.title}`}
               >
                 <Pencil />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Make a copy"
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => onDuplicate(p)}
                 aria-label={`Duplicate ${p.title}`}
               >
                 <Copy />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint={p.active ? 'Pause on TV' : 'Enable on TV'}
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => void onToggle(p)}
                 aria-label={p.active ? `Pause ${p.title}` : `Enable ${p.title}`}
               >
                 <MonitorPlay />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint={p.archived ? 'Restore from archive' : 'Archive programme'}
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => void onArchive(p)}
-                aria-label={`Archive ${p.title}`}
+                aria-label={`${p.archived ? 'Restore' : 'Archive'} ${p.title}`}
               >
                 <Archive />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Delete programme"
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => onDelete(p)}
@@ -336,7 +340,7 @@ export function ProgrammesPanel({
                 className="text-red-700"
               >
                 <Trash2 />
-              </Button>
+              </AdminActionButton>
             </div>
           </div>
         ))}
@@ -610,49 +614,49 @@ function MediaViewer({
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Button
+            <AdminActionButton hint="Zoom out"
               size="icon-sm"
               variant="ghost"
               onClick={() => zoomTo(zoom - 0.5)}
               aria-label="Zoom out"
             >
               <ZoomOut />
-            </Button>
+            </AdminActionButton>
             <span className="w-12 text-center text-xs">
               {Math.round(zoom * 100)}%
             </span>
-            <Button
+            <AdminActionButton hint="Zoom in"
               size="icon-sm"
               variant="ghost"
               onClick={() => zoomTo(zoom + 0.5)}
               aria-label="Zoom in"
             >
               <ZoomIn />
-            </Button>
-            <Button
+            </AdminActionButton>
+            <AdminActionButton hint="Reset zoom"
               size="icon-sm"
               variant="ghost"
               onClick={() => zoomTo(1)}
               aria-label="Reset zoom"
             >
               <RotateCcw />
-            </Button>
-            <a
+            </AdminActionButton>
+            <AdminActionLink hint="Download file"
               href={item.url}
               download={item.filename}
               className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
               aria-label={`Download ${item.filename}`}
             >
               <Download />
-            </a>
-            <Button
+            </AdminActionLink>
+            <AdminActionButton hint="Close preview"
               size="icon-sm"
               variant="ghost"
               onClick={onClose}
               aria-label="Close preview"
             >
               <X />
-            </Button>
+            </AdminActionButton>
           </div>
         </div>
         <div
@@ -816,7 +820,7 @@ export function MediaPanel({
                 </div>
               </div>
               <div className="flex gap-1">
-                <Button
+                <AdminActionButton hint="Rename file"
                   size="icon-sm"
                   variant="ghost"
                   onClick={() => {
@@ -826,16 +830,16 @@ export function MediaPanel({
                   aria-label={`Rename ${m.filename}`}
                 >
                   <Pencil />
-                </Button>
-                <a
+                </AdminActionButton>
+                <AdminActionLink hint="Download file"
                   href={m.url}
                   download={m.filename}
                   className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
                   aria-label={`Download ${m.filename}`}
                 >
                   <Download />
-                </a>
-                <Button
+                </AdminActionLink>
+                <AdminActionButton hint="Delete file"
                   size="icon-sm"
                   variant="ghost"
                   className="text-red-700"
@@ -843,7 +847,7 @@ export function MediaPanel({
                   aria-label={`Delete ${m.filename}`}
                 >
                   <Trash2 />
-                </Button>
+                </AdminActionButton>
               </div>
             </div>
           </article>
@@ -1346,6 +1350,7 @@ export function SettingsPanel({
 
 export function ContentPanel({
   title,
+  boardState,
   items,
   onAdd,
   onEdit,
@@ -1356,6 +1361,7 @@ export function ContentPanel({
   onMove,
 }: {
   title: string;
+  boardState: DisplayState;
   items: ContentItem[];
   onAdd: () => void;
   onEdit: (item: ContentItem) => void;
@@ -1365,6 +1371,7 @@ export function ContentPanel({
   onArchive: (item: ContentItem) => Promise<void>;
   onMove?: (item: ContentItem, direction: -1 | 1) => Promise<void>;
 }) {
+  const [previewItem, setPreviewItem] = useState<ContentItem | null>(null);
   const ordered = [...items].sort(
     (a, b) => a.sortOrder - b.sortOrder || a.id - b.id,
   );
@@ -1387,7 +1394,11 @@ export function ContentPanel({
             key={item.id}
             className="grid items-center gap-3 border-b p-4 last:border-b-0 lg:grid-cols-[minmax(180px,1fr)_130px_110px_120px_auto]"
           >
-            <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-3">
+              {(item.type === 'EXTERNAL_POSTER' || item.imageUrl) && (
+                <PosterThumbnail key={item.imageUrl} item={item} onClick={() => setPreviewItem(item)} />
+              )}
+              <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <strong className="truncate">{item.title}</strong>
                 <StatusBadge item={item} />
@@ -1396,6 +1407,7 @@ export function ContentPanel({
                 {item.type.replaceAll('_', ' ')} ·{' '}
                 {item.zone.replaceAll('_', ' ')} · {item.priority}
               </p>
+              </div>
             </div>
             <span className="text-sm">Order {item.sortOrder}</span>
             <span className="text-sm">{item.displayDuration}s</span>
@@ -1405,7 +1417,9 @@ export function ContentPanel({
                 : 'Every day'}
             </span>
             <div className="flex flex-wrap justify-end gap-1">
-              <Button
+              <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)}
+                aria-label={`Preview ${item.title} on TV`}><Eye /> Preview</Button>
+              <AdminActionButton hint="Move earlier"
                 size="icon-sm"
                 variant="ghost"
                 disabled={!onMove}
@@ -1413,8 +1427,8 @@ export function ContentPanel({
                 aria-label={`Move ${item.title} earlier`}
               >
                 <ChevronUp />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Move later"
                 size="icon-sm"
                 variant="ghost"
                 disabled={!onMove}
@@ -1422,24 +1436,24 @@ export function ContentPanel({
                 aria-label={`Move ${item.title} later`}
               >
                 <ChevronDown />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Edit notice"
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => onEdit(item)}
                 aria-label={`Edit ${item.title}`}
               >
                 <Pencil />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Make a copy"
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => onDuplicate(item)}
                 aria-label={`Duplicate ${item.title}`}
               >
                 <Copy />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint={item.enabled ? 'Pause on TV' : 'Enable on TV'}
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => void onToggle(item)}
@@ -1448,16 +1462,16 @@ export function ContentPanel({
                 }
               >
                 <MonitorPlay />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint={item.archived ? 'Restore from archive' : 'Archive notice'}
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => void onArchive(item)}
-                aria-label={`Archive ${item.title}`}
+                aria-label={`${item.archived ? 'Restore' : 'Archive'} ${item.title}`}
               >
                 <Archive />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Delete notice"
                 size="icon-sm"
                 variant="ghost"
                 className="text-red-700"
@@ -1465,7 +1479,7 @@ export function ContentPanel({
                 aria-label={`Delete ${item.title}`}
               >
                 <Trash2 />
-              </Button>
+              </AdminActionButton>
             </div>
           </article>
         ))}
@@ -1475,6 +1489,7 @@ export function ContentPanel({
           </div>
         )}
       </div>
+      <NoticePreviewDialog state={boardState} item={previewItem} onClose={() => setPreviewItem(null)} />
     </section>
   );
 }
@@ -1520,13 +1535,13 @@ export function UsersPanel({
             <span className="capitalize">{user.role}</span>
             <span>{user.active ? 'Active' : 'Disabled'}</span>
             <div className="flex justify-end gap-1">
-              <Button
+              <AdminActionButton hint="Edit user"
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => onEdit(user)}
               >
                 <Pencil />
-              </Button>
+              </AdminActionButton>
               {user.root ? (
                 <span
                   className="text-muted-foreground"
@@ -1536,14 +1551,14 @@ export function UsersPanel({
                   <ShieldCheck className="mx-2 size-4" />
                 </span>
               ) : (
-                <Button
+                <AdminActionButton hint="Delete user"
                   size="icon-sm"
                   variant="ghost"
                   className="text-red-700"
                   onClick={() => onDelete(user)}
                 >
                   <Trash2 />
-                </Button>
+                </AdminActionButton>
               )}
             </div>
           </div>
@@ -1592,7 +1607,7 @@ export function HadithPanel({
             className="grid items-center gap-4 border-b p-4 last:border-b-0 md:grid-cols-[72px_1fr_110px_auto]"
           >
             <div className="flex">
-              <Button
+              <AdminActionButton hint="Move earlier"
                 size="icon-sm"
                 variant="ghost"
                 disabled={index === 0}
@@ -1600,8 +1615,8 @@ export function HadithPanel({
                 aria-label="Move up"
               >
                 <ChevronUp />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Move later"
                 size="icon-sm"
                 variant="ghost"
                 disabled={index === ordered.length - 1}
@@ -1609,7 +1624,7 @@ export function HadithPanel({
                 aria-label="Move down"
               >
                 <ChevronDown />
-              </Button>
+              </AdminActionButton>
             </div>
             <div className="flex min-w-0 items-center gap-4">
               <p
@@ -1642,15 +1657,15 @@ export function HadithPanel({
               >
                 {h.active ? 'Pause' : 'Show'}
               </Button>
-              <Button
+              <AdminActionButton hint="Edit hadith"
                 size="icon-sm"
                 variant="ghost"
                 onClick={() => onEdit(h)}
                 aria-label={`Edit hadith ${h.reference}`}
               >
                 <Pencil />
-              </Button>
-              <Button
+              </AdminActionButton>
+              <AdminActionButton hint="Delete hadith"
                 size="icon-sm"
                 variant="ghost"
                 className="text-red-700"
@@ -1658,7 +1673,7 @@ export function HadithPanel({
                 aria-label={`Delete hadith ${h.reference}`}
               >
                 <Trash2 />
-              </Button>
+              </AdminActionButton>
             </div>
           </div>
         ))}

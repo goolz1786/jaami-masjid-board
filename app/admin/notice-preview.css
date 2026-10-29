@@ -1,0 +1,7 @@
+.notice-preview-stage:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  aspect-ratio: auto !important;
+  border: 0;
+  border-radius: 0;
+}

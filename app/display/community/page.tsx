@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useBoardState } from '@/hooks/use-board-state';
+import { contentVisibleOnBoard } from '@/lib/board-preview';
 import {
   Bell,
   BookOpen,
@@ -37,10 +39,8 @@ import {
   formatWeekday,
 } from '@/lib/board-dates';
 import {
-  defaultDisplayState,
   fontCss,
   type ContentItem,
-  type DisplayState,
 } from '@/lib/masjid-types';
 import './community.css';
 
@@ -64,32 +64,6 @@ function PanelHeading({
       <span>{children}</span>
     </div>
   );
-}
-
-function useLiveBoardState() {
-  const [state, setState] = useState<DisplayState>(defaultDisplayState);
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        const response = await fetch('/api/state', { cache: 'no-store' });
-        if (response.ok && active)
-          setState((await response.json()) as DisplayState);
-      } catch {
-        /* Keep the last valid board visible until the server reconnects. */
-      }
-    };
-    void load();
-    const timer = window.setInterval(
-      load,
-      Math.max(3, state.settings.refreshInterval) * 1000,
-    );
-    return () => {
-      active = false;
-      window.clearInterval(timer);
-    };
-  }, [state.settings.refreshInterval]);
-  return state;
 }
 
 function EmptyNotice({
@@ -366,7 +340,7 @@ function PosterWall({
 }
 
 export default function CommunityDisplayPage() {
-  const state = useLiveBoardState();
+  const { state, previewItem } = useBoardState();
   const [currentTime, setCurrentTime] = useState(
     () => new Date('2000-01-01T00:00:00Z'),
   );
@@ -384,17 +358,17 @@ export default function CommunityDisplayPage() {
       state.contentItems.filter(
         (item) =>
           item.displayProfile === 'COMMUNITY' &&
-          isContentActive(item, currentTime),
+          contentVisibleOnBoard(item, currentTime, previewItem?.id),
       ),
-    [currentTime, state.contentItems],
+    [currentTime, state.contentItems, previewItem?.id],
   );
   const byType = (type: ContentItem['type']) =>
-    orderContent(active.filter((item) => item.type === type));
+    previewItem?.type === type ? [previewItem] : orderContent(active.filter((item) => item.type === type));
   const janazahItems = byType('JANAZAH');
   const nikahItems = byType('NIKAH');
   const sickItems = byType('SICK_DUA');
   const taleemItems = byType('LADIES_TALEEM');
-  const posters = active
+  const posters = previewItem?.type === 'EXTERNAL_POSTER' ? [previewItem] : active
     .filter((item) => item.type === 'EXTERNAL_POSTER')
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
   const posterPages = buildPosterPages(
@@ -427,7 +401,9 @@ export default function CommunityDisplayPage() {
     takeovers.length,
     Math.max(5, state.settings.takeoverDuration || 10) * 1000,
   );
-  const takeover = takeoverIndex >= 0 ? takeovers[takeoverIndex] : undefined;
+  const takeover = previewItem
+    ? (previewItem.takeover ? previewItem : undefined)
+    : (takeoverIndex >= 0 ? takeovers[takeoverIndex] : undefined);
   const timeZone = state.settings.timezone || 'Africa/Johannesburg';
   const islamicDate =
     state.islamicDate?.value || formatIslamicDate(currentTime, timeZone);
