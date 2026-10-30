@@ -96,12 +96,12 @@ Stop the system with `docker compose down`. Database records and uploaded media 
 
 ## Windows 11 one-click installation
 
-Double-click **`INSTALL-WINDOWS.cmd`** and accept the single Windows administrator prompt. The installer:
+For a new installation, extract into **`C:\JaamiMasjidBoard`** on the Windows system drive, then double-click **`INSTALL-WINDOWS.cmd`** and accept the administrator prompt. The automatic service refuses custom/user-profile locations and linked paths. The installer:
 
 - installs Node.js LTS when required and ensures the Microsoft Visual C++ x64 runtime used by Cloudflare's local server is present;
 - asks you to create the initial admin username and password;
 - installs dependencies, builds the production app and prepares its database;
-- registers a background server service that starts with Windows;
+- protects installation permissions and registers a LocalService background task that starts with Windows;
 - opens TCP port 3000 to devices on the local subnet;
 - starts the board immediately, without requiring a reboot or Docker Desktop.
 
@@ -112,13 +112,13 @@ Main landscape board:     http://SERVER-IP:3000/display/main
 Community portrait board: http://SERVER-IP:3000/display/community
 ```
 
-The admin page is `http://SERVER-IP:3000/admin/login`. The installer prints the detected server IP addresses when it finishes. Existing `.env` credentials and board data are preserved when it is run again.
+The admin page is `http://SERVER-IP:3000/admin/login`. HTTP login is retained by request and remains unencrypted. The installer prints server addresses and preserves existing credentials/data. Use administrator PowerShell for maintenance. See the [security review](docs/SECURITY-REVIEW.md) for deployment checks and HTTPS alternatives.
 
 To remove the Windows autostart service and firewall rule, double-click **`UNINSTALL-WINDOWS.cmd`**. It retains the application, database, uploads and backups.
 
 ## Upgrading an existing Windows server
 
-For a step-by-step walkthrough, open [START-HERE-UPDATE.txt](START-HERE-UPDATE.txt) or the [printable Windows update guide](docs/Windows-Update-Guide.pdf). Both are included in the update package.
+Read [START-HERE-UPDATE.txt](START-HERE-UPDATE.txt) and the [security review](docs/SECURITY-REVIEW.md). The [older printable guide](docs/Windows-Update-Guide.pdf) covers the original preserving-data workflow; current text instructions take precedence for security changes.
 
 To update a server that already runs the board, build an update ZIP from the new source with **`PACKAGE-WINDOWS.cmd`** (or `scripts\windows\Package-Board.ps1`). On the server, extract the ZIP to a temporary folder and run **`UPGRADE-WINDOWS.cmd`** as administrator. Extract outside the existing installation. The upgrade requires the existing `.env` and `.board-data`, stops the service, creates a mandatory SHA-256-verified backup of credentials, data, uploads and the previous app/build, then copies new app files in place. It preserves runtime paths, rebuilds, applies a repeatable additive schema upgrade and restarts the service. Legacy admin sessions require sign-in again; accounts and passwords are retained. A failed update reports the rollback snapshot and keeps the service stopped after app replacement.
 
@@ -178,10 +178,10 @@ npm run dev
 | Variable         | Purpose                             | Initial value             |
 | ---------------- | ----------------------------------- | ------------------------- |
 | `ADMIN_USERNAME` | Administrator login name            | `admin`                   |
-| `ADMIN_PASSWORD` | Administrator password              | `changeme`                |
-| `SESSION_SECRET` | Signs session tokens (HMAC-SHA256)  | replace before production |
+| `ADMIN_PASSWORD` | Initial administrator password      | Required: unique, 12–1024 characters |
+| `SESSION_SECRET` | Signs session tokens (HMAC-SHA256)  | Required: random, at least 32 characters |
 
-The first login creates the initial administrator from `ADMIN_USERNAME` / `ADMIN_PASSWORD`. After persistent data exists, changing the environment variables does not overwrite that account.
+The first login creates the initial administrator from `ADMIN_USERNAME` / `ADMIN_PASSWORD`; placeholders are rejected. Changing `ADMIN_PASSWORD` later does not overwrite the stored account. Keep `ADMIN_USERNAME` unchanged on existing installations. Docker Compose mounts `.env` read-only. Setup helpers quote values safely; manual `.env` edits must account for Wrangler's dollar-variable expansion.
 
 Passwords are stored as PBKDF2-SHA256 hashes with a unique random salt per user (format `pbkdf2$sha256$<iterations>$<salt>$<hash>`). Accounts created by older builds are upgraded automatically the next time they sign in. `SESSION_SECRET` no longer salts password hashes, so rotating it only invalidates active sessions — users sign in again rather than being locked out.
 

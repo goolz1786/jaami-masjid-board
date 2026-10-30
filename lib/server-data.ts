@@ -26,6 +26,8 @@ import { ensureSchema } from './server-schema';
 import { rootUsername } from './root-admin';
 import { isValidTimeZone, safeTimeZone } from './timezone';
 import { publicDisplayState } from './public-state';
+import { validateContentItem } from './content-validation';
+import { RequestError } from './request-security';
 
 const now = () => new Date().toISOString();
 const bool = (value: unknown) => (value ? 1 : 0);
@@ -137,7 +139,11 @@ function rowHadith(row: Record<string, unknown>): HadithEntry {
 function rowContent(row: Record<string, unknown>): ContentItem {
   let details: Record<string, string> = {};
   try {
-    details = JSON.parse(str(row.details ?? '{}')) as Record<string, string>;
+    const parsed: unknown = JSON.parse(str(row.details ?? '{}'));
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed))
+      details = Object.fromEntries(
+        Object.entries(parsed).filter(([, value]) => typeof value === 'string'),
+      );
   } catch {
     /* malformed legacy details remain empty */
   }
@@ -239,7 +245,10 @@ export async function readState(
       ? ({ ...defaultSettings, ...JSON.parse(settingRow.data) } as Settings)
       : defaultSettings;
     // Do not rewrite old settings; normalize invalid legacy values for readers.
-    const normalizedSettings = { ...settings, timezone: safeTimeZone(settings.timezone) };
+    const normalizedSettings = {
+      ...settings,
+      timezone: safeTimeZone(settings.timezone),
+    };
     const islamicDateCache = parseIslamicDateCache(islamicDateRow?.data);
     const islamicDate = resolveIslamicDate(
       settings.islamicDateSource,
@@ -270,27 +279,23 @@ export async function readState(
       contentItems: contentRows.results.map(rowContent),
       hadith: hadithRows.results.map(rowHadith),
       media,
-      users: userRows.results.map(
-        (row): UserSummary => ({
-          id: Number(row.id),
-          username: str(row.username),
-          role: str(row.role ?? 'admin') as UserSummary['role'],
-          active: Boolean(row.active),
-          createdAt: str(row.created_at),
-          root: str(row.username) === rootUsername(),
-        }),
-      ),
-      auditLog: auditRows.results.map(
-        (row): AuditEntry => ({
-          id: Number(row.id),
-          username: str(row.username),
-          action: str(row.action),
-          entity: str(row.entity),
-          entityId: row.entity_id == null ? null : Number(row.entity_id),
-          summary: str(row.summary ?? ''),
-          createdAt: str(row.created_at),
-        }),
-      ),
+      users: userRows.results.map((row): UserSummary => ({
+        id: Number(row.id),
+        username: str(row.username),
+        role: str(row.role ?? 'admin') as UserSummary['role'],
+        active: Boolean(row.active),
+        createdAt: str(row.created_at),
+        root: str(row.username) === rootUsername(),
+      })),
+      auditLog: auditRows.results.map((row): AuditEntry => ({
+        id: Number(row.id),
+        username: str(row.username),
+        action: str(row.action),
+        entity: str(row.entity),
+        entityId: row.entity_id == null ? null : Number(row.entity_id),
+        summary: str(row.summary ?? ''),
+        createdAt: str(row.created_at),
+      })),
       lastUpdated: changedRow?.changed_at ?? now(),
     };
     return seed ? state : publicDisplayState(state);
@@ -412,7 +417,10 @@ async function changed() {
 }
 
 export async function saveSettings(settings: Settings) {
-  if (!isValidTimeZone(settings.timezone)) throw new Error('Choose a valid timezone, for example Africa/Johannesburg.');
+  if (!isValidTimeZone(settings.timezone))
+    throw new Error(
+      'Choose a valid timezone, for example Africa/Johannesburg.',
+    );
   settings = { ...settings, timezone: settings.timezone.trim() };
   const timestamp = now();
   await env.DB.batch([
@@ -635,14 +643,11 @@ export async function saveHadith(
   if (!arabic) throw new Error('The Arabic text is required.');
   if (!translation) throw new Error('The translation is required.');
   if (!reference) throw new Error('A reference is required.');
-  if (arabic.length > 2000)
-    throw new Error('The Arabic text is too long.');
+  if (arabic.length > 2000) throw new Error('The Arabic text is too long.');
   if (translation.length > 2000)
     throw new Error('The translation is too long.');
-  if (reference.length > 160)
-    throw new Error('The reference is too long.');
-  if (narrator.length > 120)
-    throw new Error('The narrator name is too long.');
+  if (reference.length > 160) throw new Error('The reference is too long.');
+  if (narrator.length > 120) throw new Error('The narrator name is too long.');
   const values = [
     arabic,
     translation,
@@ -675,6 +680,8 @@ export async function deleteHadith(id: number) {
 export async function saveContentItem(
   item: Omit<ContentItem, 'id' | 'createdAt' | 'updatedAt'> & { id?: number },
 ) {
+  const errors = validateContentItem(item as ContentItem);
+  if (errors.length) throw new RequestError(400, errors.join(' '));
   const timestamp = now();
   const values = [
     item.type,
@@ -744,9 +751,7 @@ export async function saveUser(input: {
   if (!input.username.trim()) throw new Error('A username is required.');
   const root = rootUsername();
   if (input.id) {
-    const target = await env.DB.prepare(
-      'SELECT username FROM users WHERE id=?',
-    )
+    const target = await env.DB.prepare('SELECT username FROM users WHERE id=?')
       .bind(input.id)
       .first<{ username: string }>();
     if (target && target.username === root) {
@@ -756,9 +761,8 @@ export async function saveUser(input: {
     }
     const statement = input.passwordHash
       ? env.DB.prepare(
-        'UPDATE users SET username=?,password_hash=?,role=?,active=?,updated_at=? WHERE id=?',
-      )
-        .bind(
+          'UPDATE users SET username=?,password_hash=?,role=?,active=?,updated_at=? WHERE id=?',
+        ).bind(
           input.username.trim(),
           input.passwordHash,
           input.role,
@@ -767,9 +771,8 @@ export async function saveUser(input: {
           input.id,
         )
       : env.DB.prepare(
-        'UPDATE users SET username=?,role=?,active=?,updated_at=? WHERE id=?',
-      )
-        .bind(
+          'UPDATE users SET username=?,role=?,active=?,updated_at=? WHERE id=?',
+        ).bind(
           input.username.trim(),
           input.role,
           bool(input.active),
@@ -778,7 +781,10 @@ export async function saveUser(input: {
         );
     await env.DB.batch([
       statement,
-      env.DB.prepare('DELETE FROM sessions WHERE user_id=? OR username=?').bind(input.id, target?.username ?? ''),
+      env.DB.prepare('DELETE FROM sessions WHERE user_id=? OR username=?').bind(
+        input.id,
+        target?.username ?? '',
+      ),
     ]);
   } else {
     if (!input.passwordHash)
@@ -820,7 +826,10 @@ export async function deleteUser(id: number, currentUsername: string) {
   )
     throw new Error('At least one active administrator is required.');
   await env.DB.batch([
-    env.DB.prepare('DELETE FROM sessions WHERE user_id=? OR username=?').bind(id, target.username),
+    env.DB.prepare('DELETE FROM sessions WHERE user_id=? OR username=?').bind(
+      id,
+      target.username,
+    ),
     env.DB.prepare('DELETE FROM users WHERE id=?').bind(id),
   ]);
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { currentUser, isAuthenticated } from '@/lib/server-auth';
+import { currentUser } from '@/lib/server-auth';
 import { hashPassword } from '@/lib/password';
 import {
   deleteAnnouncement,
@@ -29,6 +29,13 @@ import type {
 } from '@/lib/masjid-types';
 import { canManage, validateContentItem } from '@/lib/content-validation';
 import { isValidTimeZone } from '@/lib/timezone';
+import {
+  assertSameOrigin,
+  readJsonBody,
+  RequestError,
+  requestErrorResponse,
+} from '@/lib/request-security';
+import { isRecord, validateAdminPayload } from '@/lib/admin-validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,32 +45,57 @@ const unauthorized = () =>
 type HadithPayload = Omit<HadithEntry, 'id'> & { id?: number };
 
 export async function GET() {
-  if (!(await isAuthenticated())) return unauthorized();
-  return NextResponse.json(await readState(true, true), {
+  const actor = await currentUser();
+  if (!actor) return unauthorized();
+  const state = await readState(true, true);
+  if (actor.role !== 'admin') {
+    state.users = [];
+    state.auditLog = [];
+  }
+  return NextResponse.json(state, {
     headers: { 'Cache-Control': 'no-store' },
   });
 }
 
 export async function POST(request: Request) {
-  if (!(await isAuthenticated())) return unauthorized();
   try {
-    const body = (await request.json()) as {
+    assertSameOrigin(request);
+    const actor = await currentUser();
+    if (!actor || !actor.active) return unauthorized();
+    const raw = await readJsonBody(request);
+    if (
+      !isRecord(raw) ||
+      typeof raw.entity !== 'string' ||
+      typeof raw.action !== 'string'
+    )
+      throw new RequestError(400, 'An entity and action are required.');
+    const body = raw as {
       entity: string;
       action: string;
       payload?: unknown;
       id?: number;
     };
-    const actor = await currentUser();
-    if (!actor || !actor.active) return unauthorized();
     if (!canManage(body.entity, actor.role))
       return NextResponse.json(
         { error: 'Administrator permission is required.' },
         { status: 403 },
       );
+    if (
+      body.action === 'delete' &&
+      (!Number.isSafeInteger(body.id) || (body.id ?? 0) <= 0)
+    )
+      throw new RequestError(400, 'A valid record ID is required.');
+    if (body.action === 'save' || body.action === 'rename')
+      validateAdminPayload(body.entity, body.payload);
     if (body.entity === 'settings' && body.action === 'save') {
       const settings = body.payload as Settings;
       if (!isValidTimeZone(settings?.timezone))
-        return NextResponse.json({ error: 'Choose a valid timezone, for example Africa/Johannesburg.' }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: 'Choose a valid timezone, for example Africa/Johannesburg.',
+          },
+          { status: 400 },
+        );
       settings.islamicDateManual = settings.islamicDateManual?.trim() ?? '';
       if (!['JAMIAT', 'MANUAL'].includes(settings.islamicDateSource))
         return NextResponse.json(
@@ -108,14 +140,13 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       await renameMedia(input.id, input.filename);
-    }
-    else if (body.entity === 'content' && body.action === 'save') {
+    } else if (body.entity === 'content' && body.action === 'save') {
       const item = body.payload as ContentItem;
       const errors = validateContentItem(item);
       if (errors.length)
         return NextResponse.json({ error: errors.join(' ') }, { status: 400 });
       await saveContentItem(item);
-    }     else if (body.entity === 'content' && body.action === 'delete' && body.id)
+    } else if (body.entity === 'content' && body.action === 'delete' && body.id)
       await deleteContentItem(body.id);
     else if (body.entity === 'hadith' && body.action === 'save')
       await saveHadith(body.payload as HadithPayload);
@@ -151,14 +182,9 @@ export async function POST(request: Request) {
     );
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'The change could not be saved.',
-      },
-      { status: 500 },
+    return requestErrorResponse(
+      error,
+      'The change could not be saved. Check for a duplicate username or try again.',
     );
   }
 }

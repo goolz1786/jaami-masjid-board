@@ -4,6 +4,7 @@ import type {
   ContentZone,
   DisplayProfile,
 } from './masjid-types';
+import { payloadShapeErrors } from './admin-validation';
 
 const types: ContentType[] = [
   'GENERAL_NOTICE',
@@ -39,13 +40,25 @@ const profiles: DisplayProfile[] = [
 ];
 
 export function validateContentItem(item: ContentItem): string[] {
+  const shapeErrors = payloadShapeErrors('content', item);
+  if (shapeErrors.length) return shapeErrors;
+  if (
+    typeof item.title !== 'string' ||
+    !Array.isArray(item.recurringWeekdays) ||
+    !item.details
+  )
+    return ['Title, recurring weekdays and details are required.'];
   const errors: string[] = [];
   if (!item.title.trim()) errors.push('A title is required.');
   if (!types.includes(item.type)) errors.push('Invalid content type.');
   if (!profiles.includes(item.displayProfile))
     errors.push('Invalid display profile.');
   if (!zones.includes(item.zone)) errors.push('Invalid target zone.');
-  if (item.displayDuration < 5 || item.displayDuration > 300)
+  if (
+    !Number.isFinite(item.displayDuration) ||
+    item.displayDuration < 5 ||
+    item.displayDuration > 300
+  )
     errors.push('Display duration must be between 5 and 300 seconds.');
   if (
     item.recurringWeekdays.some(
@@ -84,5 +97,5 @@ export function duplicateContentItem(item: ContentItem): ContentItem {
 const EDITOR_ENTITIES = new Set(['content', 'media', 'hadith']);
 
 export function canManage(entity: string, role: 'admin' | 'editor') {
-  return role === 'admin' || EDITOR_ENTITIES.has(entity);
+  return role === 'admin' || (role === 'editor' && EDITOR_ENTITIES.has(entity));
 }

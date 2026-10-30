@@ -71,20 +71,6 @@ function Install-WingetPackage([string]$Id, [string]$Label) {
   Update-ProcessPath
 }
 
-function ConvertFrom-SecureValue([Security.SecureString]$Value) {
-  $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($Value)
-  try {
-    return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
-  } finally {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
-  }
-}
-
-function ConvertTo-DotEnvValue([string]$Value) {
-  $escaped = $Value.Replace('\', '\\').Replace('"', '\"').Replace("`r", '\r').Replace("`n", '\n')
-  return '"' + $escaped + '"'
-}
-
 function Wait-ForBoard([int]$Seconds = 120) {
   $deadline = (Get-Date).AddSeconds($Seconds)
   do {
@@ -100,6 +86,10 @@ function Wait-ForBoard([int]$Seconds = 120) {
 
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $projectRoot
+. (Join-Path $PSScriptRoot 'Protect-BoardInstallation.ps1')
+Assert-BoardInstallPath -Path $projectRoot
+Stop-ScheduledTask -TaskName $serviceTaskName -ErrorAction SilentlyContinue
+Protect-BoardInstallation -Path $projectRoot
 Write-Host "Installing Jaami Masjid Display Board from $projectRoot" -ForegroundColor Cyan
 
 Update-ProcessPath
@@ -113,42 +103,10 @@ if (-not $SkipPrerequisiteInstall) {
 }
 
 $envPath = Join-Path $projectRoot '.env'
-if (-not (Test-Path -LiteralPath $envPath)) {
-  $adminUsername = Read-Host 'Admin username [admin]'
-  if ([string]::IsNullOrWhiteSpace($adminUsername)) { $adminUsername = 'admin' }
-  do {
-    $first = ConvertFrom-SecureValue (Read-Host 'Create an admin password (minimum 8 characters)' -AsSecureString)
-    $second = ConvertFrom-SecureValue (Read-Host 'Confirm the admin password' -AsSecureString)
-    if ($first.Length -lt 8) {
-      Write-Host 'The password must contain at least 8 characters.' -ForegroundColor Yellow
-      $validPassword = $false
-    } elseif ($first -ne $second) {
-      Write-Host 'The passwords did not match.' -ForegroundColor Yellow
-      $validPassword = $false
-    } else {
-      $validPassword = $true
-    }
-  } until ($validPassword)
-
-  $secretBytes = New-Object byte[] 48
-  $randomNumberGenerator = [Security.Cryptography.RandomNumberGenerator]::Create()
-  try {
-    $randomNumberGenerator.GetBytes($secretBytes)
-  } finally {
-    $randomNumberGenerator.Dispose()
-  }
-  $sessionSecret = [Convert]::ToBase64String($secretBytes)
-  $lines = @(
-    "ADMIN_USERNAME=$(ConvertTo-DotEnvValue $adminUsername)",
-    "ADMIN_PASSWORD=$(ConvertTo-DotEnvValue $first)",
-    "SESSION_SECRET=$(ConvertTo-DotEnvValue $sessionSecret)"
-  )
-  [IO.File]::WriteAllLines($envPath, $lines, [Text.UTF8Encoding]::new($false))
-  $first = $second = $sessionSecret = $null
-  Write-Host 'Created the local administrator configuration.' -ForegroundColor Green
-} else {
+if (Test-Path -LiteralPath $envPath) {
   Write-Host 'Existing .env credentials were preserved.' -ForegroundColor Green
 }
+& (Join-Path $PSScriptRoot 'Initialize-BoardConfig.ps1') -ProjectRoot $projectRoot
 
 Stop-ScheduledTask -TaskName $serviceTaskName -ErrorAction SilentlyContinue
 & (Join-Path $PSScriptRoot 'Stop-Board.ps1')
@@ -194,7 +152,7 @@ $taskSettings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopI
 
 $serviceAction = New-ScheduledTaskAction -Execute $powerShell -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$runScript`"" -WorkingDirectory $projectRoot
 $serviceTrigger = New-ScheduledTaskTrigger -AtStartup
-$servicePrincipal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+$servicePrincipal = New-ScheduledTaskPrincipal -UserId 'S-1-5-19' -LogonType ServiceAccount -RunLevel Limited
 Register-ScheduledTask -TaskName $serviceTaskName -Action $serviceAction -Trigger $serviceTrigger -Settings $taskSettings -Principal $servicePrincipal -Description 'Runs the Jaami Masjid digital display server when Windows starts.' -Force | Out-Null
 
 Get-NetFirewallRule -DisplayName $firewallRuleName -ErrorAction SilentlyContinue | Remove-NetFirewallRule

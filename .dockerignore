@@ -4,6 +4,15 @@ node_modules
 dist
 .wrangler
 .env
+.env.*
+.dev.vars*
+output
+outputs
+sites
+uploads
+media
+work
+*.zip
 npm-debug.log
 tmp
 backups

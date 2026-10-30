@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-30 — Access controls and deployment hardening
+
+- Make unpublished uploads private while keeping published TV images/PDFs accessible, including existing same-origin absolute links.
+- Add origin checks, streamed request limits, JSON content-type enforcement and server-side account/content validation. Hide account/audit records from editors.
+- Remove default-password bootstrap and session-secret fallbacks. Preserve existing accounts and require stronger new passwords.
+- Protect all startup paths, fix npm/Docker credential loading and preserve literal password characters. Restrict Windows permissions and use LocalService; reject unsupported upgrade locations before replacement.
+- Remove unused CLI dependencies and apply targeted patches. Clean installation and npm audit report zero known vulnerabilities.
+- Retain LAN HTTP login by owner request. HTTPS, actual Windows service acceptance and full Docker startup remain deployment work. See the [security review](docs/SECURITY-REVIEW.md) for verification and limitations.
+
+Earlier entries describe their respective release dates. The current security review supersedes their outstanding-finding lists.
+
 ## 2026-10-29 — Security hardening
 
 - Disable Wrangler's local data explorer and observability interface in the Windows and Docker startup paths. A local-server test confirmed the explorer was available without application login before the change and returned 404 after it.

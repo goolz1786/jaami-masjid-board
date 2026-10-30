@@ -5,12 +5,15 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
-      SESSION_SECRET: ${SESSION_SECRET:-change-this-before-production}
     volumes:
       - masjid_data:/data
+      # Read the same credential file as Windows without Compose re-interpolating it.
+      - type: bind
+        source: ./.env
+        target: /run/board.env
+        read_only: true
+        bind:
+          create_host_path: false
 
 volumes:
   masjid_data:

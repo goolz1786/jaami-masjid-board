@@ -42,6 +42,8 @@ if (-not (Test-Path -LiteralPath $InstallPath)) {
   throw "No existing installation was found at $InstallPath. On a new server, run INSTALL-WINDOWS.cmd from the extracted package instead."
 }
 $install = (Resolve-Path -LiteralPath $InstallPath).Path
+. (Join-Path $SourcePath 'scripts\windows\Protect-BoardInstallation.ps1')
+Assert-BoardInstallPath -Path $install
 if (-not (Test-Path -LiteralPath (Join-Path $install 'package.json'))) {
   throw "$install does not look like a Jaami Masjid board installation."
 }

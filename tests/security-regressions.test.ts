@@ -6,7 +6,7 @@ const fixture = vi.hoisted(() => ({
   env: {
     DB: undefined as unknown as D1Database,
     ADMIN_USERNAME: 'root',
-    SESSION_SECRET: 'test-secret',
+    SESSION_SECRET: 'test-secret-long-enough-for-regression-testing',
   },
   cookie: 'test-session',
   jar: { get: vi.fn(), set: vi.fn(), delete: vi.fn() },
@@ -53,14 +53,49 @@ beforeEach(async () => {
 afterEach(() => store.sqlite.close());
 
 describe('session lifecycle', () => {
+  it('refuses login with a missing or placeholder session secret', async () => {
+    const original = fixture.env.SESSION_SECRET;
+    try {
+      for (const value of [
+        '',
+        'development-only-change-me',
+        'replace-with-a-long-random-value',
+      ]) {
+        fixture.env.SESSION_SECRET = value;
+        await expect(auth.login('root', 'anything', false)).rejects.toThrow(
+          /SESSION_SECRET/,
+        );
+      }
+    } finally {
+      fixture.env.SESSION_SECRET = original;
+    }
+  });
+  it('does not bootstrap a default-password administrator', async () => {
+    store.sqlite.exec('DELETE FROM users');
+    await expect(auth.login('root', 'changeme', false)).rejects.toThrow(
+      /ADMIN_PASSWORD/,
+    );
+    expect(
+      store.sqlite.prepare('SELECT COUNT(*) AS count FROM users').get()?.count,
+    ).toBe(0);
+  });
   it('temporarily limits repeated password guesses for an account', async () => {
     const { hashPassword } = await import('../lib/password');
     const hash = await hashPassword('correct-test-password');
-    store.sqlite.prepare('UPDATE users SET password_hash=? WHERE id=2').run(hash);
-    for (let i = 0; i < 5; i++) expect(await auth.login('editor', 'incorrect', false)).toBe(false);
-    expect(await auth.login('editor', 'correct-test-password', false)).toBe(false);
-    store.sqlite.prepare('UPDATE login_attempts SET window_started_at=?').run(Date.now() - 16 * 60 * 1000);
-    expect(await auth.login('editor', 'correct-test-password', false)).toBe(true);
+    store.sqlite
+      .prepare('UPDATE users SET password_hash=? WHERE id=2')
+      .run(hash);
+    for (let i = 0; i < 5; i++)
+      expect(await auth.login('editor', 'incorrect', false)).toBe(false);
+    expect(await auth.login('editor', 'correct-test-password', false)).toBe(
+      false,
+    );
+    store.sqlite
+      .prepare('UPDATE login_attempts SET window_started_at=?')
+      .run(Date.now() - 16 * 60 * 1000);
+    expect(await auth.login('editor', 'correct-test-password', false)).toBe(
+      true,
+    );
   });
   it('creates a working session bound to the current user ID on sign-in', async () => {
     const { hashPassword } = await import('../lib/password');

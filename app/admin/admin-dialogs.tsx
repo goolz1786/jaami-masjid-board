@@ -553,7 +553,7 @@ export function UserDialog({
             label={
               value.id
                 ? 'New password (leave blank to keep current)'
-                : 'Password'
+                : 'Password (at least 12 characters)'
             }
           >
             <Input
@@ -595,7 +595,7 @@ export function UserDialog({
           </Button>
           <Button
             disabled={
-              !value.username.trim() || (!value.id && value.password.length < 8)
+              !value.username.trim() || ((!value.id || Boolean(value.password)) && value.password.length < 12)
             }
             onClick={() => void onSave(value).catch(() => undefined)}
           >

@@ -3,6 +3,10 @@ import { cookies } from 'next/headers';
 import { ensureSchema } from './server-schema';
 import { hashPassword, verifyPassword } from './password';
 import { rootUsername } from './root-admin';
+import {
+  requireBootstrapPassword,
+  requireSessionSecret,
+} from './security-config';
 
 const COOKIE_NAME = 'masjid_admin_session';
 const SESSION_HOURS = 12;
@@ -10,7 +14,7 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_ATTEMPTS = 5;
 const encoder = new TextEncoder();
 
-const sessionSecret = () => env.SESSION_SECRET ?? 'development-only-change-me';
+const sessionSecret = () => requireSessionSecret(env.SESSION_SECRET);
 
 const legacyPasswordSalts = () =>
   Array.from(
@@ -47,7 +51,7 @@ async function ensureBootstrapAdmin() {
   )
     .bind(
       rootUsername(),
-      await hashPassword(env.ADMIN_PASSWORD ?? 'changeme'),
+      await hashPassword(requireBootstrapPassword(env.ADMIN_PASSWORD)),
       timestamp,
       timestamp,
       'admin',
@@ -57,7 +61,14 @@ async function ensureBootstrapAdmin() {
 }
 
 export async function login(username: string, password: string, secure = true) {
-  if (typeof username !== 'string' || typeof password !== 'string' || username.length > 128 || password.length > 1024) return false;
+  sessionSecret();
+  if (
+    typeof username !== 'string' ||
+    typeof password !== 'string' ||
+    username.length > 128 ||
+    password.length > 1024
+  )
+    return false;
   await ensureSchema();
   await ensureBootstrapAdmin();
   const user = await env.DB.prepare(
@@ -78,16 +89,26 @@ export async function login(username: string, password: string, secure = true) {
        attempts = CASE WHEN window_started_at <= ? THEN 1 ELSE attempts + 1 END,
        window_started_at = CASE WHEN window_started_at <= ? THEN ? ELSE window_started_at END
      RETURNING attempts`,
-  ).bind(attemptKey, timestamp, timestamp - LOGIN_WINDOW_MS, timestamp - LOGIN_WINDOW_MS, timestamp)
+  )
+    .bind(
+      attemptKey,
+      timestamp,
+      timestamp - LOGIN_WINDOW_MS,
+      timestamp - LOGIN_WINDOW_MS,
+      timestamp,
+    )
     .first<{ attempts: number }>();
-  if (!attempts || attempts.attempts > LOGIN_ATTEMPTS || !user || !user.active) return false;
+  if (!attempts || attempts.attempts > LOGIN_ATTEMPTS || !user || !user.active)
+    return false;
   const verification = await verifyPassword(
     user.password_hash,
     password,
     legacyPasswordSalts(),
   );
   if (!verification.valid) return false;
-  await env.DB.prepare('DELETE FROM login_attempts WHERE account_key=?').bind(attemptKey).run();
+  await env.DB.prepare('DELETE FROM login_attempts WHERE account_key=?')
+    .bind(attemptKey)
+    .run();
   let verifiedHash = user.password_hash;
   if (verification.needsRehash) {
     verifiedHash = await hashPassword(password);
@@ -111,6 +132,9 @@ export async function login(username: string, password: string, secure = true) {
     )
     .run();
   if (!created.meta.changes) return false;
+  await env.DB.prepare('DELETE FROM sessions WHERE expires_at <= ?')
+    .bind(new Date().toISOString())
+    .run();
   const jar = await cookies();
   jar.set(COOKIE_NAME, id, {
     httpOnly: true,

@@ -34,6 +34,8 @@ try {
     [IO.File]::WriteAllText((Join-Path $source 'app\api\media\route.ts'), 'application media route')
     $installer = if ($scenario -eq 'installer-failure') { 'exit 12' } else { 'exit 0' }
     [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Install-Board.ps1'), $installer)
+    # ACL policy is tested separately; this fixture exercises preservation in TEMP.
+    [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Protect-BoardInstallation.ps1'), 'function Assert-BoardInstallPath { param($Path) }')
     Copy-Item -LiteralPath (Join-Path $root 'scripts\windows\Backup-Board.ps1'), (Join-Path $root 'scripts\windows\Board-Archive.ps1') -Destination (Join-Path $source 'scripts\windows')
 
     # Change only the elevation check in the test copy. Execute all original

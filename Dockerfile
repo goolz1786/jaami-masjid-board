@@ -14,6 +14,9 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/drizzle ./drizzle
 COPY --from=build /app/lib/schema-upgrade.ts ./lib/schema-upgrade.ts
 COPY --from=build /app/scripts/migrate-board.mjs ./scripts/migrate-board.mjs
+COPY --from=build /app/scripts/start-board.mjs ./scripts/start-board.mjs
+COPY --from=build /app/scripts/write-runtime-env.mjs ./scripts/write-runtime-env.mjs
+COPY --from=build /app/scripts/dotenv-value.mjs ./scripts/dotenv-value.mjs
 COPY --from=build /app/wrangler.local.jsonc ./wrangler.local.jsonc
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh

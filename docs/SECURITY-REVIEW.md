@@ -1,24 +1,43 @@
-# Security review — 29 October 2026
+# Security review — 30 October 2026
 
-This review covers the source checkout and isolated local tests. It is not an independent penetration test, a network assessment, or evidence that an existing installation has received the changes.
+This covers source changes, automated tests and a disposable local runtime. It is not a penetration-test certificate or evidence that the masjid server has been updated.
 
-## Changes prepared
+## Fixed in this release
 
-- Windows and Docker startup disable Wrangler's local explorer and local observability. Before the change an isolated server returned an unauthenticated database listing; with the setting enabled, the explorer returned 404. The board and authenticated admin API continued to respond in that test.
-- Sign-in attempts are limited per account to five per 15-minute window. The limit can be used to temporarily deny sign-in to a known account, so restrict network access as well. A successful sign-in resets the counter; after a lockout wait for the window to expire.
-- Uploads must have a matching PNG, JPEG, WebP or PDF signature. The upload route rejects browser requests with a different Origin, and served media includes `X-Content-Type-Options: nosniff`. File signatures do not prove that an entire file is safe.
-- The Windows package excludes runtime data and unrelated workspace folders. The updater retains existing data and creates a rollback backup.
-- Dependencies were updated. An npm audit on 29 October reported 11 findings: 2 high, 8 moderate and 1 low; no critical findings. The remaining findings include build and development dependencies. Applicability to the running board has not been established for every advisory.
+- Disable Wrangler explorer/observability in every supplied launcher; fix npm and Docker credential-file loading.
+- Reject cross-origin browser mutations and require JSON content types. Limit actual streamed bytes before parsing: login 8 KiB, administration 64 KiB, uploads 20 MiB plus 64 KiB multipart overhead, with a 30-second body timeout.
+- Restrict unpublished media to authenticated users. Published relative and same-origin absolute media links remain public. Responses use no-store, nosniff and a restrictive media CSP. PDFs download on direct navigation and still work in canvas previews.
+- Reject missing, short or placeholder session secrets and default-password bootstrap. New or changed passwords require 12–1024 characters; existing accounts and passwords are retained. Setup prompts for credentials and preserves literal password characters.
+- Validate account roles, IDs, notice fields and structured details on the server. Ignore malformed legacy detail values on read. Omit account summaries and audit logs from editor responses.
+- Retain session revocation and five-attempt/15-minute account throttling; clean expired sessions on successful login.
+- Require the automatic Windows service installation at %SystemDrive%\JaamiMasjidBoard, reject linked paths, protect executable/configuration permissions and use LocalService instead of SYSTEM. Only designated runtime directories are writable by the service. Reject unsupported upgrade locations before stopping or copying.
+- Exclude credential variants and unrelated/runtime files from Docker build context and update packages.
+- Remove the unused shadcn CLI while preserving its CSS with its MIT license. Apply scoped fflate 0.7.5 and esbuild 0.25.12 overrides. A clean install reports zero known npm audit vulnerabilities on 30 October 2026; that is a point-in-time result, not proof of zero vulnerabilities.
 
-## Remaining risks and operating requirements
+## Verification and limits
 
-- The Windows service listens on the local network and its firewall rule permits the local subnet and Tailscale. HTTP administration sends passwords and cookies without transport encryption. Use a trusted network, restrict access with the firewall, and arrange a properly configured HTTPS endpoint for remote administration. This update does not add HTTPS.
-- Media URLs are accessible without login, including files that are not currently displayed. Only upload material suitable for disclosure to anyone who has the link.
-- The installed version may expose the local explorer. Until this update is installed and verified on the server, restrict access to port 3000 to trusted devices or stop the board. Do not assume the server is protected merely because the source has been changed.
-- Existing backups contain credentials, database contents and uploaded media. Store backups with restricted access and test restoration securely.
-- Initial administrator credentials and a random session secret are created by the Windows installer. Other deployment methods must supply strong unique credentials and a secret; do not use development defaults.
-- A file size check occurs after the server parses the multipart request; it is not a network-level request size limit. Use network controls or a reverse proxy to limit request sizes.
+All 116 automated tests, TypeScript and the production build passed. Build output retains framework sourcemap warnings; scoped lint retains existing React compiler warnings. Windows package/preserving-data upgrade smoke tests cover success, installer failure and missing configuration. Security policy tests inspect the intended ACL and reject unsupported paths without modifying an installation.
 
-## Updating an existing Windows installation
+Real isolated Wrangler checks passed: HTTP login, authenticated administration, editor restrictions, logout revocation, login throttling, explorer 404, origin/MIME/size rejection, upload, private draft preview, publication and unpublication. A password containing a literal dollar sign, backslash and quote also passed through the real credential loader.
 
-Use the supplied preserving-data upgrade procedure: extract the update outside `C:\JaamiMasjidBoard`, run `UPGRADE-WINDOWS.cmd` as administrator, and retain the verified rollback backup. The updater preserves `.env`, `.board-data` and uploads. After installation, check that the displays and administrator login work and that `/cdn-cgi/local/explorer/api/d1/database` is unavailable from another device. Do not delete the existing installation or its data.
+Docker Compose configuration validated; the Docker daemon was unavailable, so full container startup was not tested. Actual Windows LocalService startup and filesystem permission migration require an elevated server acceptance test; this review environment was not elevated.
+
+## Retained risks
+
+**LAN HTTP login remains enabled at the owner's explicit request.** Passwords and cookies are unencrypted in transit. Keep port 3000 off the public internet and restrict access to trusted devices. This release does not install HTTPS or change the existing login address.
+
+Optional alternatives are a trusted HTTPS proxy, or private HTTPS access through [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve). [Caddy's HTTPS documentation](https://caddyserver.com/docs/automatic-https) explains certificate management and local certificate trust. Neither is configured here. A proxy deployment must verify origin handling and Secure cookies end to end; do not trust arbitrary forwarded headers.
+
+Before relying on this update, install it on the actual server and verify reboot, login, uploads, both displays and explorer denial from another device. Updating GitHub does not update the server. The app uses Wrangler's local runtime and a beta framework; keep it on a restricted network.
+
+File signatures are not malware scanning. Previously downloaded or cached public files cannot be recalled. Account throttling can temporarily lock out a known username. Per-request limits do not cap concurrent connections or disk usage. Backups contain credentials and board data: restrict access and test restoration.
+
+Automatic date mode contacts Jamiat KZN; external image URLs can also cause network traffic. Use manual date mode and local media for offline operation.
+
+## Upgrade
+
+Extract outside the existing C:\JaamiMasjidBoard installation and run UPGRADE-WINDOWS.cmd as administrator. Keep the verified rollback backup. Existing .env, .board-data and uploads are preserved. Custom locations require a separately reviewed relocation; do not delete the existing data.
+
+Permissions and the task identity change. Use administrator PowerShell for maintenance. If startup fails, retain the backup and follow UPDATE-EXISTING-WINDOWS-SERVER.txt. Short or placeholder SESSION_SECRET values need operator correction before login works. Rotation invalidates sessions; legacy secret-salted password hashes may need recovery, so do not rotate blindly.
+
+Advisories: [fflate ZIP64 parsing](https://github.com/advisories/GHSA-px8p-9vwx-vf98), [esbuild development-server CORS](https://github.com/advisories/GHSA-67mh-4wv8-2f99).

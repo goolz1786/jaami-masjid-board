@@ -6,6 +6,38 @@ import {
   programmeHasEnded,
 } from './content-scheduling';
 
+// Only call with the filtered public state. A library upload alone is private.
+export function publicMediaKeys(
+  state: DisplayState,
+  origin?: string,
+): Set<string> {
+  const urls = [
+    state.settings.logoUrl,
+    state.donation.qrImageUrl,
+    ...state.programmes.map((item) => item.imageUrl),
+    ...state.contentItems.map((item) => item.imageUrl),
+  ];
+  const keys = new Set<string>();
+  for (const url of urls) {
+    try {
+      let path = url;
+      if (origin) {
+        const parsed = new URL(url, origin);
+        if (parsed.origin !== origin) continue;
+        path = parsed.pathname;
+      }
+      if (!path?.startsWith('/api/media/')) continue;
+      const key = decodeURIComponent(
+        path.slice('/api/media/'.length).split(/[?#]/)[0],
+      );
+      if (key.startsWith('media/')) keys.add(key);
+    } catch {
+      /* Malformed URLs cannot publish a file. */
+    }
+  }
+  return keys;
+}
+
 function withinSchedule(from: string, until: string, now: Date) {
   const start = parseBoardDate(from);
   const end = parseBoardDate(until);

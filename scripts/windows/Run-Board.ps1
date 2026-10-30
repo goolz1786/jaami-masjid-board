@@ -25,6 +25,9 @@ try {
   # Wrangler's local explorer can read and modify D1/R2 without app login.
   $env:X_LOCAL_EXPLORER = 'false'
   $env:X_LOCAL_OBSERVABILITY = 'false'
+  $env:WRANGLER_LOG_PATH = Join-Path $runtime 'wrangler-logs'
+  $env:MINIFLARE_REGISTRY_PATH = Join-Path $ProjectRoot '.wrangler\registry'
+  $env:WRANGLER_SEND_METRICS = 'false'
   npx.cmd wrangler dev --config wrangler.local.jsonc --ip 0.0.0.0 --port 3000 --persist-to .board-data --env-file .env --show-interactive-dev-session false *>> $logFile
   $exitCode = $LASTEXITCODE
   "===== Board exited (pid $PID, exit code $exitCode) $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') =====" |

@@ -1,6 +1,14 @@
 Update your Windows board
 
-JAAMI' MASJID DISPLAY BOARD | 16 October 2026 | Page 1: Install
+JAAMI' MASJID DISPLAY BOARD | 30 October 2026 | Page 1: Install
+
+SECURITY UPDATE: Read docs/SECURITY-REVIEW.md before installation. Automatic
+service setup requires C:\JaamiMasjidBoard on the Windows system drive,
+protects installation permissions and uses LocalService. Custom locations
+are rejected before replacement. Use administrator PowerShell for maintenance.
+Existing LAN HTTP login remains enabled and unencrypted by request.
+Verify reboot, login, uploads and both displays on the actual server.
+The older PDF guide does not include these new security requirements.
 
 For your existing server at C:\JaamiMasjidBoard. This update includes poster thumbnails, TV previews and helpful labels on action icons. Use the latest combined ZIP only; you do not need to install the earlier preview ZIP first.
 
