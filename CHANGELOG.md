@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-02 — Mayyit notice webhook
+
+- Add an optional, authenticated webhook for external systems to send Janazah notices to the Community Board immediately.
+- Validate notice fields and timestamps, reject expired notices, and prevent duplicate notices when deliveries are retried.
+- Add an additive database migration and a [setup and integration guide](docs/MAYYIT-WEBHOOK.md) covering authentication, example requests, responses and deployment requirements.
+- Keep the endpoint disabled until a separate secret is configured. A secure HTTPS or private Tailscale connection must be arranged and tested for the actual installation.
+- Verify with 120 automated tests, a TypeScript check, a production build and isolated local webhook tests. Existing board data is preserved during the schema upgrade.
+
 ## 2026-10-30 — Access controls and deployment hardening
 
 - Make unpublished uploads private while keeping published TV images/PDFs accessible, including existing same-origin absolute links.

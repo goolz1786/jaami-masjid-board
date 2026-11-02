@@ -7,7 +7,12 @@ import { dotenvValue } from './dotenv-value.mjs';
 // Pass only the application's credentials, never the entire process environment.
 const directory = mkdtempSync(join(tmpdir(), 'board-runtime-env-'));
 const path = join(directory, 'board.env');
-const keys = ['ADMIN_USERNAME', 'ADMIN_PASSWORD', 'SESSION_SECRET'];
+const keys = [
+  'ADMIN_USERNAME',
+  'ADMIN_PASSWORD',
+  'SESSION_SECRET',
+  'MAYYIT_WEBHOOK_SECRET',
+];
 writeFileSync(
   path,
   keys

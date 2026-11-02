@@ -4,6 +4,8 @@ A digital noticeboard with landscape and portrait display profiles, a password-p
 
 See the [changelog](CHANGELOG.md) for the latest changes, verification and security review notes.
 
+For sending Mayyit / Janazah notices from another system, see the [webhook setup and integration guide](docs/MAYYIT-WEBHOOK.md). The webhook is disabled until configured with a separate secret and requires a secure network path.
+
 ## Screenshots
 
 These screenshots were captured from an isolated local demo on 14 October 2026. Programme wording, poster content, dates and QR destinations are samples. They do not show a production database or verified upcoming events.

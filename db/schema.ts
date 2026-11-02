@@ -126,6 +126,13 @@ export const sessions = sqliteTable(
   (table) => [index('idx_sessions_expires_at').on(table.expiresAt)],
 );
 
+export const mayyitWebhookEvents = sqliteTable('mayyit_webhook_events', {
+  eventId: text('event_id').primaryKey().notNull(),
+  noticeId: integer('notice_id').notNull(),
+  payloadHash: text('payload_hash').notNull(),
+  createdAt: text('created_at').notNull(),
+});
+
 export const changeLog = sqliteTable('change_log', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   changedAt: text('changed_at').notNull(),

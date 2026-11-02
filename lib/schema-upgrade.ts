@@ -1,4 +1,10 @@
 const tables = [
+  `CREATE TABLE IF NOT EXISTS mayyit_webhook_events (
+    event_id TEXT PRIMARY KEY NOT NULL,
+    notice_id INTEGER NOT NULL,
+    payload_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS login_attempts (
     account_key TEXT PRIMARY KEY NOT NULL,
     attempts INTEGER NOT NULL,
