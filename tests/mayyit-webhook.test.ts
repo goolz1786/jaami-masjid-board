@@ -41,6 +41,34 @@ describe('mayyit webhook', () => {
     fixture.env.MAYYIT_WEBHOOK_SECRET = '';
     expect((await post(request(payload, 'wrong'))).status).toBe(503);
   });
+  it('accepts ISO timestamps with fractional seconds and an explicit offset', async () => {
+    for (const [index, timestamp] of [
+      '2030-06-01T12:00:00.123Z',
+      '2030-06-01T14:00:00.123456+02:00',
+      '2030-06-01T14:00:00.1+02:00',
+    ].entries()) {
+      const response = await post(
+        request({
+          ...payload,
+          eventId: `fraction-${index}`,
+          janazahDateTime: timestamp,
+        }),
+      );
+      expect(response.status).toBe(201);
+    }
+  });
+  it('continues rejecting malformed fractional timestamps and invalid dates', async () => {
+    for (const timestamp of [
+      '2030-06-01T12:00:00.Z',
+      '2030-06-01T12:00:00.123',
+      '2030-02-30T12:00:00.123Z',
+      '2030-06-01T12:00:00.1234567890Z',
+    ])
+      expect(
+        (await post(request({ ...payload, janazahDateTime: timestamp })))
+          .status,
+      ).toBe(400);
+  });
   it('immediately publishes a valid notice and safely handles retries', async () => {
     const created = await post(request(payload));
     expect(created.status).toBe(201);
@@ -71,7 +99,9 @@ describe('mayyit webhook', () => {
     ).toBe(1);
     const { readState } = await import('../lib/server-data');
     const display = await readState(false, true);
-    expect(display.contentItems.map((notice) => notice.id)).toContain(body.noticeId);
+    expect(display.contentItems.map((notice) => notice.id)).toContain(
+      body.noticeId,
+    );
     expect(
       (await post(request({ ...payload, deceasedName: 'Different person' })))
         .status,

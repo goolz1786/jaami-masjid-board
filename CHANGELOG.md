@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-02 — Webhook timestamp compatibility
+
+- Accept ISO 8601 timestamps with optional fractional seconds and an explicit timezone, including JavaScript's standard millisecond format. Malformed timestamps remain rejected.
+
 ## 2026-11-02 — Mayyit notice webhook
 
 - Add an optional, authenticated webhook for external systems to send Janazah notices to the Community Board immediately.

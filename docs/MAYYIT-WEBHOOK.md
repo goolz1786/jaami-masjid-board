@@ -48,7 +48,7 @@ Example JSON (sample names and dates only):
 }
 ```
 
-`eventId` and `deceasedName` are required, as is at least one of `janazahDateTime` or `burialDateTime`. Event IDs are 1–128 ASCII letters, numbers, dots, underscores, colons or hyphens. The other supported optional string fields are `arabicName`, `leavesFrom`, and `pickupDateTime`, in addition to the example fields. Unknown fields are rejected. Each string is limited to 200 characters, except `dua` (1,000). Dates must be ISO 8601 with seconds and an explicit timezone, for example `2030-06-01T14:00:00+02:00` or `2030-06-01T12:00:00Z`. Do not assume the server timezone. Date and place details should be verified by the sender before sending because notices are published immediately.
+`eventId` and `deceasedName` are required, as is at least one of `janazahDateTime` or `burialDateTime`. Event IDs are 1–128 ASCII letters, numbers, dots, underscores, colons or hyphens. The other supported optional string fields are `arabicName`, `leavesFrom`, and `pickupDateTime`, in addition to the example fields. Unknown fields are rejected. Each string is limited to 200 characters, except `dua` (1,000). Dates must be ISO 8601 with seconds and an explicit timezone, for example `2030-06-01T14:00:00+02:00` or `2030-06-01T12:00:00Z`. Optional fractional seconds (1–9 digits) are accepted, such as `2030-06-01T12:00:00.123Z`. Do not assume the server timezone. Date and place details should be verified by the sender before sending because notices are published immediately.
 
 ## Responses and retries
 
