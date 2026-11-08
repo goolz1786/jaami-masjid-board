@@ -66,6 +66,9 @@ $wasRunning = ($previousTask -and $previousTask.State -eq 'Running') -or [bool](
 try {
   Write-Host 'Stopping the display service...' -ForegroundColor Cyan
   Stop-ScheduledTask -TaskName $watchdogTaskName -ErrorAction SilentlyContinue
+  # Stop the verified runner and its descendants while the runner still exists.
+  # Stopping the task first can orphan its database-holding child processes.
+  & (Join-Path $SourcePath 'scripts\windows\Stop-UpgradeRunner.ps1') -InstallPath $install -RequireRunner:$wasRunning
   Stop-ScheduledTask -TaskName $serviceTaskName -ErrorAction SilentlyContinue
   & (Join-Path $install 'scripts\windows\Stop-Board.ps1')
   if (Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue) {

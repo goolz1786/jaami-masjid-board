@@ -6,18 +6,26 @@ New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
 # Simulate service operations; never touch the real Windows task or firewall.
 function Get-ScheduledTask {
   param($TaskName, $ErrorAction)
-  if ($global:jaamiUpgradeScenario -eq 'precopy-backup-failure') { return [pscustomobject]@{ TaskName=$TaskName; State='Running' } }
+  if ($global:jaamiUpgradeScenario -in @('precopy-backup-failure', 'unsafe-orphan')) { return [pscustomobject]@{ TaskName=$TaskName; State='Running' } }
   return $null
 }
-function Stop-ScheduledTask { param($TaskName, $ErrorAction) }
+function Stop-ScheduledTask {
+  param($TaskName, $ErrorAction)
+  if ($TaskName -eq 'Jaami Masjid Display Service') { $global:jaamiServiceStopped = $true }
+  if ($TaskName -eq 'Jaami Masjid Display Service' -and $global:jaamiUpgradeScenario -eq 'managed-stop-order' -and -not $global:jaamiTreeStopped) {
+    throw 'The scheduled task was stopped before its managed process tree.'
+  }
+}
 function Start-ScheduledTask { param($TaskName, $ErrorAction) if ($null -ne $global:jaamiUpgradeStarts) { $global:jaamiUpgradeStarts.Add($TaskName) } }
 function Get-NetTCPConnection { param($LocalPort, $State, $ErrorAction) return $null }
 function Assert-Equal($actual, $expected, [string]$message) { if ($actual -ne $expected) { throw $message } }
 
 try {
-  foreach ($scenario in @('success', 'installer-failure', 'missing-config', 'precopy-backup-failure')) {
+  foreach ($scenario in @('success', 'installer-failure', 'missing-config', 'precopy-backup-failure', 'managed-stop-order', 'unsafe-orphan')) {
     $global:jaamiUpgradeScenario = $scenario
     $global:jaamiUpgradeStarts = [Collections.Generic.List[string]]::new()
+    $global:jaamiTreeStopped = $false
+    $global:jaamiServiceStopped = $false
     $scenarioRoot = Join-Path $fixtureRoot $scenario
     $install = Join-Path $scenarioRoot 'installed'
     $source = Join-Path $scenarioRoot 'update'
@@ -42,6 +50,8 @@ try {
     [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Install-Board.ps1'), $installer)
     # ACL policy is tested separately; this fixture exercises preservation in TEMP.
     [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Protect-BoardInstallation.ps1'), 'function Assert-BoardInstallPath { param($Path) }')
+    [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Stop-UpgradeRunner.ps1'), 'param($InstallPath) $global:jaamiTreeStopped = $true')
+    if ($scenario -eq 'unsafe-orphan') { [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Stop-UpgradeRunner.ps1'), 'param($InstallPath) throw "Synthetic unexpected board process"') }
     Copy-Item -LiteralPath (Join-Path $root 'scripts\windows\Backup-Board.ps1'), (Join-Path $root 'scripts\windows\Board-Archive.ps1') -Destination (Join-Path $source 'scripts\windows')
     if ($scenario -eq 'precopy-backup-failure') { [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Backup-Board.ps1'), 'throw "Synthetic backup failure"') }
 
@@ -57,14 +67,19 @@ try {
     if ($scenario -eq 'missing-config') { Remove-Item -LiteralPath (Join-Path $install '.env') }
     $failed = $false
     try { & $scriptPath -InstallPath $install -SourcePath $source } catch { $failed = $true }
-    Assert-Equal $failed ($scenario -ne 'success') "$scenario returned the wrong success/failure result."
+    Assert-Equal $failed ($scenario -notin @('success', 'managed-stop-order')) "$scenario returned the wrong success/failure result."
+    if ($scenario -eq 'managed-stop-order' -and -not $global:jaamiTreeStopped) { throw 'The upgrade did not stop the managed process tree before the scheduled task.' }
     Assert-Equal ([IO.File]::ReadAllText((Join-Path $install '.board-data\existing.sqlite'))) 'existing notices, users and schedules' "$scenario changed the database."
     Assert-Equal ([IO.File]::ReadAllText((Join-Path $install 'uploads\poster.pdf'))) 'existing uploaded poster' "$scenario changed uploads."
-    if ($scenario -in @('missing-config', 'precopy-backup-failure')) {
+    if ($scenario -in @('missing-config', 'precopy-backup-failure', 'unsafe-orphan')) {
       Assert-Equal ([IO.File]::ReadAllText((Join-Path $install 'app-marker.txt'))) 'previous app' 'Missing credentials must stop before copying.'
       if ($scenario -eq 'precopy-backup-failure') {
         Assert-Equal ($global:jaamiUpgradeStarts -join '|') 'Jaami Masjid Display Service|Jaami Masjid Display Watchdog' 'A pre-copy failure must restart both previously running tasks.'
         Write-Host 'PASS: a pre-copy failure restores the prior board and watchdog tasks.'
+      }
+      if ($scenario -eq 'unsafe-orphan') {
+        if ($global:jaamiServiceStopped) { throw 'An unexpected process must not stop the running board task.' }
+        Write-Host 'PASS: unexpected board processes abort before stopping the service or replacing files.'
       }
       continue
     }

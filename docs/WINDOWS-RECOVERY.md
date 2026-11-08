@@ -9,6 +9,7 @@ This update addresses the observed restart blockage: an older board process kept
 - A separate Windows task, `Jaami Masjid Display Watchdog`, checks the board's local state endpoint every 30 seconds. After three consecutive failed checks and a two-minute startup grace period, it attempts a safe recovery. It waits at least two minutes between checks that could trigger a recovery and requests no more than three watchdog restarts per hour while that watchdog process remains running. The board task's own Windows retry policy is separate.
 - Before terminating a process, the watchdog verifies the board task definition, the runner's executable, exact command line, PID and creation time, and the ownership chain of any port 3000 listener. Unknown listeners, unverified runners and unexpected task definitions are left untouched. It rechecks the task and board to avoid interrupting a newly started or recovered instance.
 - Stopping the board for maintenance stops the watchdog first. Backup and upgrade paths restore previously running tasks after a pre-copy failure; an update that fails after files are replaced remains stopped for recovery. Uninstall removes the watchdog task as well.
+- Before an upgrade stops the board, it checks for unexpected board processes and refuses to proceed if the process tree cannot be verified. It stops the verified runner and its descendants before stopping the scheduled task, then waits for those processes to exit. A database locked by another process can still stop the backup; preserve the installation and investigate the lock.
 - The board service uses LocalService. The watchdog uses SYSTEM only to control that service and its verified process tree; installation protects executable files from standard-user modification. Do not weaken these permissions or run the watchdog from a user-writable folder.
 
 ## What this does not guarantee
@@ -55,3 +56,5 @@ Start-ScheduledTask -TaskName 'Jaami Masjid Display Watchdog'
 ```
 
 If the upgrade fails, keep the backup printed by the updater and follow `UPDATE-EXISTING-WINDOWS-SERVER.txt`; do not delete the installation. If the watchdog logs an unverified process, unexpected task or unknown port owner, inspect it before intervening. Do not kill unrelated Node or PowerShell processes.
+
+The first 8 November recovery preview was marked **do not install** after the masjid server's backup failed on a database held by a board worker. Only an archive reported as verified is a usable rollback backup; a partial archive is not verified. Use the corrected release and perform the upgrade during a maintenance window.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-08 — Upgrade shutdown correction
+
+- Check for unexpected board processes before stopping the existing service. Stop a verified runner's process tree and wait for its children to exit before taking the rollback backup; leave unverified processes untouched.
+- The earlier recovery preview failed to back up a database locked by a separate board worker on the masjid PC. The update stopped before copying files, but the previous service required manual recovery. The worker's original detachment cause remains unconfirmed.
+- Tested with an actual exclusively locked test database, a disposable board runtime and simulated upgrade failures. Scheduled-task shutdown, installation ACL changes and recovery still require verification on the target server.
+
 ## 2026-11-08 — Windows service recovery
 
 - Prevent old locked log files and ordinary native warning output from stopping a new board launch. Give each run separate logs, reduce routine request logging and treat any unexpected worker exit as a failure for the scheduled-task retry policy.
