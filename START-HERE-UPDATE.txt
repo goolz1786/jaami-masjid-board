@@ -1,6 +1,11 @@
 Update your Windows board
 
-JAAMI' MASJID DISPLAY BOARD | 30 October 2026 | Page 1: Install
+JAAMI' MASJID DISPLAY BOARD | 8 November 2026 | Page 1: Install
+
+WINDOWS RECOVERY UPDATE: Read docs/WINDOWS-RECOVERY.md before upgrading. This
+release adds separate per-run logs and a bounded recovery watchdog. Verify the
+service, watchdog, displays, preserved content and reboot on the actual server
+during a planned maintenance window. This update does not guarantee uptime.
 
 SECURITY UPDATE: Read docs/SECURITY-REVIEW.md before installation. Automatic
 service setup requires C:\JaamiMasjidBoard on the Windows system drive,

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-08 — Windows service recovery
+
+- Prevent old locked log files and ordinary native warning output from stopping a new board launch. Give each run separate logs, reduce routine request logging and treat any unexpected worker exit as a failure for the scheduled-task retry policy.
+- Add a watchdog that checks the board, verifies the scheduled task and process ownership, and attempts bounded recovery after repeated failures. Unknown processes and task definitions are left untouched.
+- Coordinate the watchdog with manual stops, backups, upgrades and uninstall; retain existing data and rollback backups. Extend diagnostics and add a [Windows recovery guide](docs/WINDOWS-RECOVERY.md).
+- Verify with isolated Windows failure simulations, a real disposable Wrangler process, preservation tests, the application suite, TypeScript and build. Actual scheduled-task registration, ACL migration and reboot on the masjid server still require a controlled acceptance test.
+
 ## 2026-11-02 — Webhook timestamp compatibility
 
 - Accept ISO 8601 timestamps with optional fractional seconds and an explicit timezone, including JavaScript's standard millisecond format. Malformed timestamps remain rejected.

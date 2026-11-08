@@ -6,6 +6,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $serviceTaskName = 'Jaami Masjid Display Service'
+$watchdogTaskName = 'Jaami Masjid Display Watchdog'
 
 function Test-Administrator {
   $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -59,9 +60,12 @@ Write-Host "Upgrading the board at $install" -ForegroundColor Cyan
 $backup = $null
 $filesChanged = $false
 $previousTask = Get-ScheduledTask -TaskName $serviceTaskName -ErrorAction SilentlyContinue
+$previousWatchdog = Get-ScheduledTask -TaskName $watchdogTaskName -ErrorAction SilentlyContinue
+$watchdogWasRunning = $previousWatchdog -and $previousWatchdog.State -eq 'Running'
 $wasRunning = ($previousTask -and $previousTask.State -eq 'Running') -or [bool](Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)
 try {
   Write-Host 'Stopping the display service...' -ForegroundColor Cyan
+  Stop-ScheduledTask -TaskName $watchdogTaskName -ErrorAction SilentlyContinue
   Stop-ScheduledTask -TaskName $serviceTaskName -ErrorAction SilentlyContinue
   & (Join-Path $install 'scripts\windows\Stop-Board.ps1')
   if (Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue) {
@@ -104,6 +108,7 @@ try {
       if ($previousTask) { Start-ScheduledTask -TaskName $serviceTaskName -ErrorAction SilentlyContinue }
       else { & (Join-Path $install 'scripts\windows\Start-Board.ps1') }
     }
+    if ($watchdogWasRunning) { Start-ScheduledTask -TaskName $watchdogTaskName -ErrorAction SilentlyContinue }
   }
   throw
 }

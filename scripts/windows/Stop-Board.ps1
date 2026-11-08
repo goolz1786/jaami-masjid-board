@@ -2,7 +2,8 @@ $ErrorActionPreference = 'Stop'
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $pidFile = Join-Path $ProjectRoot '.board-runtime\board.pid.json'
 $serviceTask = Get-ScheduledTask -TaskName 'Jaami Masjid Display Service' -ErrorAction SilentlyContinue
-if ($serviceTask -and $serviceTask.State -eq 'Running') {
+$watchdogTask = Get-ScheduledTask -TaskName 'Jaami Masjid Display Watchdog' -ErrorAction SilentlyContinue
+if (($serviceTask -and $serviceTask.State -eq 'Running') -or ($watchdogTask -and $watchdogTask.State -eq 'Running')) {
   $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
   $principal = [Security.Principal.WindowsPrincipal]::new($identity)
   if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -11,7 +12,9 @@ if ($serviceTask -and $serviceTask.State -eq 'Running') {
     ) -Wait -PassThru
     exit $elevated.ExitCode
   }
-  Stop-ScheduledTask -TaskName $serviceTask.TaskName
+  # Stop the watchdog first so intentional maintenance is not undone.
+  if ($watchdogTask -and $watchdogTask.State -eq 'Running') { Stop-ScheduledTask -TaskName $watchdogTask.TaskName }
+  if ($serviceTask -and $serviceTask.State -eq 'Running') { Stop-ScheduledTask -TaskName $serviceTask.TaskName }
   Start-Sleep -Seconds 1
 }
 if (-not (Test-Path $pidFile)) { Write-Host 'No managed board process is recorded.'; exit 0 }

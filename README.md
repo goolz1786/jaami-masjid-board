@@ -4,6 +4,8 @@ A digital noticeboard with landscape and portrait display profiles, a password-p
 
 See the [changelog](CHANGELOG.md) for the latest changes, verification and security review notes.
 
+For Windows service recovery, task checks, maintenance and known limitations, see the [Windows recovery guide](docs/WINDOWS-RECOVERY.md).
+
 For sending Mayyit / Janazah notices from another system, see the [webhook setup and integration guide](docs/MAYYIT-WEBHOOK.md). The webhook is disabled until configured with a separate secret and requires a secure network path.
 
 ## Screenshots

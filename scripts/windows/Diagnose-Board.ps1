@@ -32,6 +32,9 @@ if ($task) {
 } else {
   Write-Host 'Scheduled task  : NOT REGISTERED (the board has no auto-start task).' -ForegroundColor Yellow
 }
+$watchdog = Get-ScheduledTask -TaskName 'Jaami Masjid Display Watchdog' -ErrorAction SilentlyContinue
+if ($watchdog) { Write-Host "Watchdog task  : state=$($watchdog.State)" }
+else { Write-Host 'Watchdog task  : NOT REGISTERED.' -ForegroundColor Yellow }
 Write-Host ''
 
 try {
@@ -74,6 +77,18 @@ foreach ($file in @('board.log.old', 'board-error.log.old')) {
     Get-Content -LiteralPath $path -Tail 25
     Write-Host ''
   }
+}
+if (Test-Path -LiteralPath (Join-Path $runtime 'watchdog.log')) {
+  Write-Host '---- watchdog.log (last 25 lines) ----' -ForegroundColor Cyan
+  Get-Content -LiteralPath (Join-Path $runtime 'watchdog.log') -Tail 25
+  Write-Host ''
+}
+$recentLogs = @(Get-ChildItem -LiteralPath $runtime -Filter 'board-*.log' -File -ErrorAction SilentlyContinue |
+  Sort-Object LastWriteTime -Descending | Select-Object -First 4)
+foreach ($log in $recentLogs) {
+  Write-Host "---- $($log.Name) (last 25 lines) ----" -ForegroundColor Cyan
+  Get-Content -LiteralPath $log.FullName -Tail 25 -ErrorAction Continue
+  Write-Host ''
 }
 
 Write-Host '---- Requirements ----' -ForegroundColor Cyan

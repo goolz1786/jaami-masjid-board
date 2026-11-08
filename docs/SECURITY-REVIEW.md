@@ -1,5 +1,9 @@
 # Security review — 30 October 2026
 
+## 8 November 2026 — Windows recovery update
+
+The installer adds a SYSTEM watchdog to manage the LocalService board task. The watchdog validates the exact task and process identity and leaves unknown listeners untouched. Its executable must remain in the protected installation directory. The November host diagnostic showed an older SYSTEM task with authenticated-user write access; that live installation remains at risk until the preserving-data update is installed and its ACLs and task identities are verified on the actual PC. The security and recovery checks were performed in isolated fixtures, not on the masjid server. See [Windows recovery](WINDOWS-RECOVERY.md) for recovery limits and acceptance checks.
+
 This covers source changes, automated tests and a disposable local runtime. It is not a penetration-test certificate or evidence that the masjid server has been updated.
 
 ## Fixed in this release

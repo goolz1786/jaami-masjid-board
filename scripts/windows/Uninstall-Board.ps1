@@ -3,6 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $serviceTaskName = 'Jaami Masjid Display Service'
+$watchdogTaskName = 'Jaami Masjid Display Watchdog'
 $kioskTaskName = 'Jaami Masjid Display Kiosk'
 $firewallRuleName = 'Jaami Masjid Display Board (TCP 3000)'
 
@@ -16,6 +17,8 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
   exit $elevated.ExitCode
 }
 
+Stop-ScheduledTask -TaskName $watchdogTaskName -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName $watchdogTaskName -Confirm:$false -ErrorAction SilentlyContinue
 Stop-ScheduledTask -TaskName $serviceTaskName -ErrorAction SilentlyContinue
 Unregister-ScheduledTask -TaskName $serviceTaskName -Confirm:$false -ErrorAction SilentlyContinue
 Unregister-ScheduledTask -TaskName $kioskTaskName -Confirm:$false -ErrorAction SilentlyContinue

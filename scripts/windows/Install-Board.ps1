@@ -4,6 +4,7 @@ param([switch]$SkipPrerequisiteInstall)
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $serviceTaskName = 'Jaami Masjid Display Service'
+$watchdogTaskName = 'Jaami Masjid Display Watchdog'
 $firewallRuleName = 'Jaami Masjid Display Board (TCP 3000)'
 
 function Test-Administrator {
@@ -88,6 +89,7 @@ $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $projectRoot
 . (Join-Path $PSScriptRoot 'Protect-BoardInstallation.ps1')
 Assert-BoardInstallPath -Path $projectRoot
+Stop-ScheduledTask -TaskName $watchdogTaskName -ErrorAction SilentlyContinue
 Stop-ScheduledTask -TaskName $serviceTaskName -ErrorAction SilentlyContinue
 Protect-BoardInstallation -Path $projectRoot
 Write-Host "Installing Jaami Masjid Display Board from $projectRoot" -ForegroundColor Cyan
@@ -155,13 +157,22 @@ $serviceTrigger = New-ScheduledTaskTrigger -AtStartup
 $servicePrincipal = New-ScheduledTaskPrincipal -UserId 'S-1-5-19' -LogonType ServiceAccount -RunLevel Limited
 Register-ScheduledTask -TaskName $serviceTaskName -Action $serviceAction -Trigger $serviceTrigger -Settings $taskSettings -Principal $servicePrincipal -Description 'Runs the Jaami Masjid digital display server when Windows starts.' -Force | Out-Null
 
+# The watchdog only controls the verified board runner. It needs SYSTEM rights
+# to manage the LocalService task; its script is protected by installation ACLs.
+$watchScript = (Resolve-Path (Join-Path $PSScriptRoot 'Watch-Board.ps1')).Path
+$watchAction = New-ScheduledTaskAction -Execute $powerShell -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$watchScript`"" -WorkingDirectory $projectRoot
+$watchTrigger = New-ScheduledTaskTrigger -AtStartup
+$watchPrincipal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName $watchdogTaskName -Action $watchAction -Trigger $watchTrigger -Settings $taskSettings -Principal $watchPrincipal -Description 'Checks and safely recovers the Jaami Masjid display service.' -Force | Out-Null
+
 Get-NetFirewallRule -DisplayName $firewallRuleName -ErrorAction SilentlyContinue | Remove-NetFirewallRule
 New-NetFirewallRule -DisplayName $firewallRuleName -Direction Inbound -Action Allow -Protocol TCP -LocalPort 3000 -RemoteAddress @('LocalSubnet', '100.64.0.0/10') -Profile Any -Description 'Allows display computers on the local network and Tailscale to reach the Jaami Masjid board.' | Out-Null
 
 Start-ScheduledTask -TaskName $serviceTaskName
 if (-not (Wait-ForBoard)) {
-  throw "The service task was installed, but the board did not answer in time. Review $projectRoot\.board-runtime\board-error.log."
+  throw "The service task was installed, but the board did not answer in time. Review the newest board-error-*.log and board-*.log in $projectRoot\.board-runtime."
 }
+Start-ScheduledTask -TaskName $watchdogTaskName
 
 Write-Host ''
 Write-Host 'Installation complete.' -ForegroundColor Green

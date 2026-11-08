@@ -4,14 +4,20 @@ $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ('jaami-upgrade-test-' + [Gu
 New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
 
 # Simulate service operations; never touch the real Windows task or firewall.
-function Get-ScheduledTask { param($TaskName, $ErrorAction) return $null }
+function Get-ScheduledTask {
+  param($TaskName, $ErrorAction)
+  if ($global:jaamiUpgradeScenario -eq 'precopy-backup-failure') { return [pscustomobject]@{ TaskName=$TaskName; State='Running' } }
+  return $null
+}
 function Stop-ScheduledTask { param($TaskName, $ErrorAction) }
-function Start-ScheduledTask { param($TaskName, $ErrorAction) }
+function Start-ScheduledTask { param($TaskName, $ErrorAction) if ($null -ne $global:jaamiUpgradeStarts) { $global:jaamiUpgradeStarts.Add($TaskName) } }
 function Get-NetTCPConnection { param($LocalPort, $State, $ErrorAction) return $null }
 function Assert-Equal($actual, $expected, [string]$message) { if ($actual -ne $expected) { throw $message } }
 
 try {
-  foreach ($scenario in @('success', 'installer-failure', 'missing-config')) {
+  foreach ($scenario in @('success', 'installer-failure', 'missing-config', 'precopy-backup-failure')) {
+    $global:jaamiUpgradeScenario = $scenario
+    $global:jaamiUpgradeStarts = [Collections.Generic.List[string]]::new()
     $scenarioRoot = Join-Path $fixtureRoot $scenario
     $install = Join-Path $scenarioRoot 'installed'
     $source = Join-Path $scenarioRoot 'update'
@@ -37,6 +43,7 @@ try {
     # ACL policy is tested separately; this fixture exercises preservation in TEMP.
     [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Protect-BoardInstallation.ps1'), 'function Assert-BoardInstallPath { param($Path) }')
     Copy-Item -LiteralPath (Join-Path $root 'scripts\windows\Backup-Board.ps1'), (Join-Path $root 'scripts\windows\Board-Archive.ps1') -Destination (Join-Path $source 'scripts\windows')
+    if ($scenario -eq 'precopy-backup-failure') { [IO.File]::WriteAllText((Join-Path $source 'scripts\windows\Backup-Board.ps1'), 'throw "Synthetic backup failure"') }
 
     # Change only the elevation check in the test copy. Execute all original
     # validation, backup, copy, installer exit handling and error paths.
@@ -53,8 +60,12 @@ try {
     Assert-Equal $failed ($scenario -ne 'success') "$scenario returned the wrong success/failure result."
     Assert-Equal ([IO.File]::ReadAllText((Join-Path $install '.board-data\existing.sqlite'))) 'existing notices, users and schedules' "$scenario changed the database."
     Assert-Equal ([IO.File]::ReadAllText((Join-Path $install 'uploads\poster.pdf'))) 'existing uploaded poster' "$scenario changed uploads."
-    if ($scenario -eq 'missing-config') {
+    if ($scenario -in @('missing-config', 'precopy-backup-failure')) {
       Assert-Equal ([IO.File]::ReadAllText((Join-Path $install 'app-marker.txt'))) 'previous app' 'Missing credentials must stop before copying.'
+      if ($scenario -eq 'precopy-backup-failure') {
+        Assert-Equal ($global:jaamiUpgradeStarts -join '|') 'Jaami Masjid Display Service|Jaami Masjid Display Watchdog' 'A pre-copy failure must restart both previously running tasks.'
+        Write-Host 'PASS: a pre-copy failure restores the prior board and watchdog tasks.'
+      }
       continue
     }
     Assert-Equal ([IO.File]::ReadAllText((Join-Path $install '.env'))) 'ADMIN_PASSWORD=existing-test-password' "$scenario replaced credentials."

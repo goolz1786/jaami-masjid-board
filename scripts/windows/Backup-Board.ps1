@@ -14,21 +14,29 @@ New-Item -ItemType Directory -Path $backupDirectory -Force | Out-Null
 $archive = Join-Path $backupDirectory ("jaami-masjid-board-$(Get-Date -Format 'yyyyMMdd-HHmmss')-$([Guid]::NewGuid().ToString('N').Substring(0,8)).zip")
 
 $task = Get-ScheduledTask -TaskName 'Jaami Masjid Display Service' -ErrorAction SilentlyContinue
+$watchdog = Get-ScheduledTask -TaskName 'Jaami Masjid Display Watchdog' -ErrorAction SilentlyContinue
+$watchdogWasRunning = $watchdog -and $watchdog.State -eq 'Running'
 $wasRunning = $task -and $task.State -eq 'Running'
 $listener = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue
 if ($listener) { $wasRunning = $true }
-if ($wasRunning) { & (Join-Path $projectRoot 'scripts\windows\Stop-Board.ps1') }
-if (Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue) {
-  throw 'Port 3000 is still in use. Stop the board before creating its backup.'
-}
 try {
+  if ($wasRunning -or $watchdogWasRunning) { & (Join-Path $projectRoot 'scripts\windows\Stop-Board.ps1') }
+  if (Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue) {
+    throw 'Port 3000 is still in use. Stop the board before creating its backup.'
+  }
   $snapshot = New-VerifiedBoardArchive -SourcePath $projectRoot -ArchivePath $archive -ExcludedDirectories @(
     'node_modules', '.git', '.wrangler', '.board-runtime', 'outputs', 'backups', 'tmp', 'work', '.next', '.vinext'
   )
 } finally {
-  if ($wasRunning -and -not $NoRestart) {
-    if ($task) { Start-ScheduledTask -TaskName $task.TaskName }
-    else { & (Join-Path $projectRoot 'scripts\windows\Start-Board.ps1') }
+  if (-not $NoRestart) {
+    try {
+      if ($wasRunning) {
+        if ($task) { Start-ScheduledTask -TaskName $task.TaskName }
+        else { & (Join-Path $projectRoot 'scripts\windows\Start-Board.ps1') }
+      }
+    } finally {
+      if ($watchdogWasRunning) { Start-ScheduledTask -TaskName $watchdog.TaskName }
+    }
   }
 }
 Write-Host 'Backup contains .env, .board-data, uploaded files and the previous application/build. Keep it private.' -ForegroundColor Yellow
