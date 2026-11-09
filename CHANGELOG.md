@@ -4,6 +4,7 @@
 
 - Mark both 8 November recovery previews as unsuitable for installation. The masjid server created a verified backup but the later preview failed in the production build with Windows status `0xC0000374`; the previous application was restored. The component and underlying cause remain unconfirmed.
 - Correct the upgrade documentation: automatic service setup rejects locations other than `%SystemDrive%\JaamiMasjidBoard`, even if an `-InstallPath` argument is supplied.
+- Document an unresolved watchdog limitation: a detached board worker without a recorded runner or port 3000 listener may go undetected, and the watchdog can still request a restart. This does not establish that recovery will succeed.
 
 ## 2026-11-08 — Upgrade shutdown correction
 

@@ -18,6 +18,8 @@ This update addresses the observed restart blockage: an older board process kept
 
 No watchdog can guarantee uninterrupted operation. The watchdog cannot recover a powered-off, sleeping or failed PC, network/display failure, a port held by an unknown process, a missing or altered task, or an unverified runner. It does not send a remote notification when recovery fails. Logs are stored locally, so check available disk space and maintain independent monitoring if outages must be noticed promptly.
 
+The watchdog's orphan check looks for the PowerShell runner and port 3000 listeners. A detached board Node/workerd process can hold database files without a runner or port 3000 listener; in that case the watchdog may request a restart without detecting it. This was reproduced with mocked task controls, and the earlier masjid incident involved an orphaned worker holding database files. Do not rely on this watchdog as complete protection against that failure mode.
+
 A forced recovery can interrupt an update that is in progress, so maintain and test independent backups. Use the supplied stop script for maintenance: stopping only the board task in Task Scheduler can cause the watchdog to start it again.
 
 Tests use isolated data, fake task operations, real disposable process trees and an isolated Wrangler runtime. Actual SYSTEM/LocalService scheduled-task registration, ACL migration, reboot and recovery on the masjid PC have not been verified by those tests. Perform and record those checks during a planned maintenance window after installation.
