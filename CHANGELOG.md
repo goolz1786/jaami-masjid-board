@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-09 — Windows upgrade warning
+
+- Mark both 8 November recovery previews as unsuitable for installation. The masjid server created a verified backup but the later preview failed in the production build with Windows status `0xC0000374`; the previous application was restored. The component and underlying cause remain unconfirmed.
+- Correct the upgrade documentation: automatic service setup rejects locations other than `%SystemDrive%\JaamiMasjidBoard`, even if an `-InstallPath` argument is supplied.
+
 ## 2026-11-08 — Upgrade shutdown correction
 
 - Check for unexpected board processes before stopping the existing service. Stop a verified runner's process tree and wait for its children to exit before taking the rollback backup; leave unverified processes untouched.

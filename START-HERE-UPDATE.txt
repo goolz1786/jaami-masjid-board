@@ -1,5 +1,11 @@
 Update your Windows board
 
+STOP: The 8 November recovery previews must not be installed. A real upgrade
+on the masjid PC failed during the production build after creating a verified
+backup, and the previous version was restored. Keep the existing installation
+and its backups in place until a corrected package has been validated.
+The older instructions below do not establish that this preview is safe.
+
 JAAMI' MASJID DISPLAY BOARD | 8 November 2026 | Page 1: Install
 
 WINDOWS RECOVERY UPDATE: Read docs/WINDOWS-RECOVERY.md before upgrading. This

@@ -1,6 +1,11 @@
 JAAMI' MASJID DISPLAY BOARD - PRESERVING-DATA WINDOWS UPGRADE
 ======================================================================
 
+STOP: Do not install the 8 November recovery previews. On the masjid PC, an
+upgrade created a verified backup but failed during the production build; the
+previous version was restored. Keep the existing installation and backups in
+place until a corrected package has been validated on the target environment.
+
 For a beginner walkthrough, read START-HERE-UPDATE.txt or open the
 printable docs\Windows-Update-Guide.pdf in this package. This file contains
 the detailed procedure and recovery steps.
@@ -24,10 +29,9 @@ Do not copy any .env or .board-data from another installation.
 Right-click UPGRADE-WINDOWS.cmd and choose Run as administrator.
 Keep the window open until it prints Upgrade complete.
 
-For a non-default installation, open an Administrator PowerShell window in
-the extracted package folder and run:
-
-    .\scripts\windows\Upgrade-Board.ps1 -InstallPath "D:\JaamiMasjidBoard"
+Automatic service setup requires %SystemDrive%\JaamiMasjidBoard. Other paths
+are rejected even when -InstallPath is supplied; relocation needs a separately
+reviewed migration.
 
 The upgrade refuses to continue if the existing .env or .board-data is missing.
 It stops the board and creates a mandatory ZIP backup before replacing files.

@@ -1,5 +1,7 @@
 # Windows board recovery and diagnostics
 
+> **Upgrade warning (9 November 2026):** Both 8 November recovery previews are marked **do not install**. The later preview created a verified backup but failed during the production build on the masjid PC with status `0xC0000374`; the previous version was restored. The underlying cause remains unconfirmed. Do not retry a live upgrade until a corrected package has been validated on the target environment.
+
 This update addresses the observed restart blockage: an older board process kept `board.log` locked, and a later launch could not write to that file. An isolated Windows PowerShell test also reproduced a second failure: native stderr warnings could terminate the launcher and leave its child process running. The exact cause of the original November 2026 outage is not established.
 
 ## What changed
@@ -57,4 +59,4 @@ Start-ScheduledTask -TaskName 'Jaami Masjid Display Watchdog'
 
 If the upgrade fails, keep the backup printed by the updater and follow `UPDATE-EXISTING-WINDOWS-SERVER.txt`; do not delete the installation. If the watchdog logs an unverified process, unexpected task or unknown port owner, inspect it before intervening. Do not kill unrelated Node or PowerShell processes.
 
-The first 8 November recovery preview was marked **do not install** after the masjid server's backup failed on a database held by a board worker. Only an archive reported as verified is a usable rollback backup; a partial archive is not verified. Use the corrected release and perform the upgrade during a maintenance window.
+The first 8 November recovery preview was marked **do not install** after the masjid server's backup failed on a database held by a board worker. The subsequent preview also failed during the build and is marked **do not install**. Only an archive reported as verified is a usable rollback backup; a partial archive is not verified.

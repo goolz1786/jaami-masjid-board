@@ -2,7 +2,9 @@
 
 ## 8 November 2026 — Windows recovery update
 
-The installer adds a SYSTEM watchdog to manage the LocalService board task. The watchdog validates the exact task and process identity and leaves unknown listeners untouched. Its executable must remain in the protected installation directory. The November host diagnostic showed an older SYSTEM task with authenticated-user write access; that live installation remains at risk until the preserving-data update is installed and its ACLs and task identities are verified on the actual PC. The security and recovery checks were performed in isolated fixtures, not on the masjid server. See [Windows recovery](WINDOWS-RECOVERY.md) for recovery limits and acceptance checks.
+**9 November upgrade warning:** Both 8 November recovery previews are marked **do not install**. The later preview failed during the production build on the masjid PC after creating a verified backup; the previous application was restored. The build reported `0xC0000374`, but the underlying cause is not established. Do not retry the upgrade until a corrected package has been validated on the target environment.
+
+The installer adds a SYSTEM watchdog to manage the LocalService board task. The watchdog validates the exact task and process identity and leaves unknown listeners untouched. Its executable must remain in the protected installation directory. The earlier host diagnostic showed a SYSTEM task with authenticated-user write access. The failed upgrade attempted to protect installation ACLs before the previous application was restored, so the current live ACLs and task identity must be checked on the actual PC; do not assume the entire hardening update was installed. The security and recovery checks were performed in isolated fixtures, not on the masjid server. See [Windows recovery](WINDOWS-RECOVERY.md) for recovery limits and acceptance checks.
 
 This covers source changes, automated tests and a disposable local runtime. It is not a penetration-test certificate or evidence that the masjid server has been updated.
 
@@ -32,7 +34,7 @@ Docker Compose configuration validated; the Docker daemon was unavailable, so fu
 
 Optional alternatives are a trusted HTTPS proxy, or private HTTPS access through [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve). [Caddy's HTTPS documentation](https://caddyserver.com/docs/automatic-https) explains certificate management and local certificate trust. Neither is configured here. A proxy deployment must verify origin handling and Secure cookies end to end; do not trust arbitrary forwarded headers.
 
-Before relying on this update, install it on the actual server and verify reboot, login, uploads, both displays and explorer denial from another device. Updating GitHub does not update the server. The app uses Wrangler's local runtime and a beta framework; keep it on a restricted network.
+After a corrected package has been validated for the target environment, acceptance checks must cover reboot, login, uploads, both displays and explorer denial from another device. Updating GitHub does not update the server. The app uses Wrangler's local runtime and a beta framework; keep it on a restricted network.
 
 File signatures are not malware scanning. Previously downloaded or cached public files cannot be recalled. Account throttling can temporarily lock out a known username. Per-request limits do not cap concurrent connections or disk usage. Backups contain credentials and board data: restrict access and test restoration.
 

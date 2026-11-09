@@ -2,6 +2,8 @@
 
 A digital noticeboard with landscape and portrait display profiles, a password-protected admin portal, persistent media storage, and preserving-data Windows upgrades.
 
+> **Windows upgrade warning (9 November 2026):** Do not install either 8 November recovery preview or use this checkout to upgrade a live server. A verified backup was created, but the upgrade failed during the production build on the masjid PC and the previous version had to be restored. The build reported Windows status `0xC0000374`; the underlying cause is not established. A locally successful build and passing smoke tests do not establish that installation will succeed on that PC. Keep the existing board and backups in place until a corrected package has been validated on the target environment.
+
 See the [changelog](CHANGELOG.md) for the latest changes, verification and security review notes.
 
 For Windows service recovery, task checks, maintenance and known limitations, see the [Windows recovery guide](docs/WINDOWS-RECOVERY.md).
@@ -72,11 +74,7 @@ GitHub stores the application source and documentation. Downloading or cloning t
 
 The default installed location is `C:\JaamiMasjidBoard`. The upgrader requires the existing configuration and data folder, creates a mandatory SHA-256-verified backup, preserves credentials/database/uploads, and applies a repeatable additive schema upgrade. It retains legacy schedule data. It stops on failure and prints the rollback snapshot path.
 
-For a different installed location, run from an Administrator PowerShell window in the extracted package folder:
-
-```powershell
-.\scripts\windows\Upgrade-Board.ps1 -InstallPath "D:\JaamiMasjidBoard"
-```
+Automatic service setup requires `%SystemDrive%\JaamiMasjidBoard`; the upgrader rejects other locations even if `-InstallPath` is supplied. An installation elsewhere requires a separately reviewed migration.
 
 Do not delete the old installation or copy another server's `.env` or `.board-data` into it. See [the complete upgrade and recovery guide](UPDATE-EXISTING-WINDOWS-SERVER.txt) before restoring a backup.
 
